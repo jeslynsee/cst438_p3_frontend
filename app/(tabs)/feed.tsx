@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import {
-    ScrollView,
-    StyleSheet,
-    View
+  ScrollView,
+  StyleSheet,
+  View
 } from 'react-native';
-import Header from "./components/Logged-In-Header";
+import Header from "../components/Logged-In-Header";
 
 
 export default function feed() {

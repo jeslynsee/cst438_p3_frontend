@@ -20,7 +20,7 @@ export default function Login() {
 
   const handleSignIn = () => {
     setErrorMsg("");
-    console.log('Sign in with:', username, password);
+    console.log("Attempting sign in with username " + username + " and password " + password);
     // Authentication logic should come from a route in Spring Boot
     // if authenticated, have router push to home/feed page
     // else error message
