@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Header from "./components/Header";
 
@@ -24,10 +24,11 @@ export default function SignUp() {
         if (username.length === 0 || email.length === 0 || password.length === 0) {
             setErrorMsg("All fields must be filled.");
         } else {
-            // standard errors avoided, so now check first if user exists 
+            // TODO after setting up backend: standard errors avoided, so now check first if user exists 
             // if user exists, set another error message
-            // else reroute to feed/home page, which is our landing page
-            router.replace("/feed");
+
+            // else reroute to login page, so user can sign in
+            router.replace("/");
         }
        
 
@@ -42,7 +43,8 @@ export default function SignUp() {
 
         <View style={styles.titleContainer}>
         <Text style={{
-            fontSize: 30
+            fontSize: 30,
+            color: "#3B1F12"
         }}> 
         Sign Up 
         </Text>

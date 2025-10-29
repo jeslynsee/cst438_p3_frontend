@@ -30,6 +30,18 @@ export default function Login() {
     }
   };
 
+  //OAuth2
+  const handleGoogleSignIn = () => {
+    console.log("Need to get OAuth working");
+    // need to set up route in backend for this
+  }
+
+  //OAuth2
+  const handleGitHubSignIn = () => {
+    console.log("Need to get OAuth working");
+    // need to set up route in backend for this
+  }
+
   // function taking user to sign up form if they don't have account already
   const rerouteToSignUp = () => {
    router.push("/sign-up");
