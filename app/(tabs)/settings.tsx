@@ -1,27 +1,26 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
-// —— Brand palette ——
 const PALETTE = {
-  bg: '#c6a481',          // page background (tan)
-  card: '#f4e9df',        // card background (light cream)
-  text: '#3a2a1f',        // main text (deep brown)
+  bg: '#c6a481',        
+  card: '#f4e9df',       
+  text: '#3a2a1f',       
   subtext: '#6e5648',
   line: '#dcc8b7',
-  btn: '#3b2418',         // primary button (dark brown)
+  btn: '#3b2418',         
   btnText: '#ffffff',
-  accent: '#a4643a',      // secondary accent (warm brown/orange)
-  danger: '#c83a2c',      // delete
+  accent: '#a4643a',      
+  danger: '#c83a2c',     
   inputBg: '#ffffff',
 };
 
@@ -30,7 +29,7 @@ type User = { username: string; email: string; team: 'Cats' | 'Dogs'; avatarUri?
 export default function SettingsScreen() {
   const [user, setUser] = useState<User>({ username: '', email: '', team: 'Cats' });
   const [pwOpen, setPwOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);      // ⬅️ NEW: delete confirm modal
+  const [confirmOpen, setConfirmOpen] = useState(false);     
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
 
   useEffect(() => {
@@ -71,7 +70,6 @@ export default function SettingsScreen() {
     Alert.alert('Password updated', 'Password reset stubbed (backend not wired yet).');
   };
 
-  // Small, consistent brand button
   const BrandButton = ({
     title,
     onPress,
@@ -232,7 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    paddingTop: 40,             // ⬅️ pushes avatar/button away from top edge
+    paddingTop: 40,           
     gap: 10,
     borderWidth: 1,
     borderColor: PALETTE.line,
@@ -265,10 +263,10 @@ const styles = StyleSheet.create({
   avatarWrap: {
     alignItems: 'center',
     gap: 12,
-    marginTop: 12,              // ⬅️ extra breathing room
+    marginTop: 12,             
     marginBottom: 12,
   },
-  uploadWrap: {                 // ⬅️ centers & adds space above the button
+  uploadWrap: {                
     alignItems: 'center',
     marginTop: 6,
   },
