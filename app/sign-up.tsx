@@ -27,7 +27,9 @@ export default function SignUp() {
             // TODO after setting up backend: standard errors avoided, so now check first if user exists 
             // if user exists, set another error message
 
-            // else reroute to login page, so user can sign in
+            // else call to backend route to create a new user
+            
+            //reroute to login page, so user can sign in
             router.replace("/");
         }
        
