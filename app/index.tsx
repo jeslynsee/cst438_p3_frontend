@@ -20,7 +20,7 @@ export default function Login() {
 
   const handleSignIn = () => {
     setErrorMsg("");
-    console.log('Sign in with:', username, password);
+    console.log("Attempting sign in with username " + username + " and password " + password);
     // Authentication logic should come from a route in Spring Boot
     // if authenticated, have router push to home/feed page
     // else error message
@@ -29,6 +29,18 @@ export default function Login() {
       setErrorMsg("Username and password both required")
     }
   };
+
+  //OAuth2
+  const handleGoogleSignIn = () => {
+    console.log("Need to get OAuth working");
+    // need to set up route in backend for this
+  }
+
+  //OAuth2
+  const handleGithubSignIn = () => {
+    console.log("Need to get OAuth working");
+    // need to set up route in backend for this
+  }
 
   // function taking user to sign up form if they don't have account already
   const rerouteToSignUp = () => {
@@ -86,6 +98,37 @@ export default function Login() {
             {/* Error Message */}
             <Text style={{color: "red", fontSize: 20}}> {errorMsg} </Text>
             
+          </View>
+
+           {/* Social Login Section */}
+           <View style={styles.socialSection}>
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Or sign in with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <View style={styles.socialButtons}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleGoogleSignIn}
+              >
+                <View style={styles.googleIcon}>
+                  <View style={styles.googleIconInner} />
+                </View>
+                <Text style={styles.socialButtonText}>Google</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleGithubSignIn}
+              >
+                <View style={styles.githubIcon}>
+                  <View style={styles.githubIconInner} />
+                </View>
+                <Text style={styles.socialButtonText}>Github</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Sign Up Rerouting */}
@@ -225,6 +268,74 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '400',
+  },
+  socialSection: {
+    marginBottom: 40,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#000000',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '400',
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  socialButton: {
+    flex: 1,
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#656F78',
+    borderRadius: 5,
+    backgroundColor: '#FFFFFF',
+    gap: 8,
+  },
+  googleIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#4285F4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  googleIconInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  githubIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#24292e',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  githubIconInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FFFFFF',
+  },
+  socialButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#656F78',
   },
   bottom: {
     flexDirection: 'row',
