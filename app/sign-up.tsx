@@ -105,6 +105,8 @@ export default function SignUp() {
               </View>
             </View>
 
+            {/* TODO: Need to add a dropdown menu to choose Team Cats or Team Dogs */}
+
             {/* Sign Up */}
             <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
               <Text style={styles.signUpButtonText}>Sign up</Text>
