@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +8,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import Header from "./components/Header";
+
 
 export default function Login() {
 
@@ -29,8 +30,9 @@ export default function Login() {
     }
   };
 
+  // function taking user to sign up form if they don't have account already
   const rerouteToSignUp = () => {
-   router.replace("/sign-up");
+   router.push("/sign-up");
   };
 
   return (
@@ -38,21 +40,10 @@ export default function Login() {
       
         <ScrollView contentContainerStyle={styles.scrollContent}>
 
-          {/* Logo/Header */}
-          <View style={styles.logoSection}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logoIconBox}>
-                {/* <View style={styles.logoIcon} /> */}
-                <Image
-                source={require("../assets/images/clawsnpaws_icon.png")}
-                style={styles.logoIcon}
-                />
-              </View>
-              <Text style={styles.logoText}>Claws and Paws</Text>
-            </View>
-          </View>
+          {/* This is our logo/header */}
 
-         
+          <Header/>
+
           {/* Username/Password Inputs */}
           <View style={styles.formContainer}>
             {/* Username Input */}
@@ -62,7 +53,7 @@ export default function Login() {
                 <TextInput
                   style={styles.input}
                   placeholder=""
-                  placeholderTextColor="rgba(38, 50, 56, 0.6)"
+                  placeholderTextColor="gray"
                   value={username}
                   onChangeText={setUsername}
                   autoCapitalize="none"
@@ -78,7 +69,7 @@ export default function Login() {
                 <TextInput
                   style={styles.input}
                   placeholder=""
-                  placeholderTextColor="rgba(38, 50, 56, 0.6)"
+                  placeholderTextColor="gray"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={true}
@@ -92,13 +83,14 @@ export default function Login() {
             <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
               <Text style={styles.signInButtonText}>Sign in</Text>
             </TouchableOpacity>
-            <Text style={{color: "red"}}> {errorMsg} </Text>
+            {/* Error Message */}
+            <Text style={{color: "red", fontSize: 20}}> {errorMsg} </Text>
             
           </View>
 
           {/* Sign Up Rerouting */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+          <View style={styles.bottom}>
+            <Text style={styles.bottomText}>Don&apos;t have an account? </Text>
             <TouchableOpacity onPress={rerouteToSignUp}>
               <Text style={styles.signUpLink}>Sign up</Text>
             </TouchableOpacity>
@@ -112,7 +104,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEEBFF',
+    backgroundColor: "#C4A484",
   },
   keyboardView: {
     flex: 1,
@@ -143,6 +135,7 @@ const styles = StyleSheet.create({
     width: 75,
     height: 75,
     borderRadius: 14,
+    marginRight: 20
   },
   logoText: {
     fontSize: 24,
@@ -198,14 +191,13 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     position: 'absolute',
-    top: -7,
-    left: 12,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 4,
+    top: -20,
+    paddingHorizontal: 10,
     fontSize: 16,
     fontWeight: '500',
     color: '#263238',
     zIndex: 1,
+    // fontStyle: 'bold'
   },
   inputContainer: {
     height: 56,
@@ -223,7 +215,7 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     height: 50,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#3B1F12",
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -234,103 +226,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '400',
   },
-  forgotPassword: {
-    alignSelf: 'center',
-  },
-  forgotPasswordText: {
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '400',
-  },
-  socialSection: {
-    marginBottom: 40,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 13,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#000000',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '400',
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  socialButton: {
-    flex: 1,
-    height: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#656F78',
-    borderRadius: 5,
-    gap: 8,
-  },
-  googleIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#4285F4',
-  },
-  googleIconInner: {
-    width: 12,
-    height: 12,
-    margin: 2,
-    borderRadius: 6,
-    backgroundColor: '#FFFFFF',
-  },
-  microsoftIcon: {
-    width: 16,
-    height: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  microsoftSquare: {
-    width: 7,
-    height: 7,
-    margin: 0.5,
-  },
-  microsoftRed: {
-    backgroundColor: '#F1511B',
-  },
-  microsoftGreen: {
-    backgroundColor: '#80CC28',
-  },
-  microsoftBlue: {
-    backgroundColor: '#00ADEF',
-  },
-  microsoftYellow: {
-    backgroundColor: '#FBBC09',
-  },
-  socialButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#656F78',
-  },
-  footer: {
+  bottom: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  footerText: {
+  bottomText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#656F78',
+    color: 'black',
   },
   signUpLink: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#656F78',
+    color: '#0F52BA',
     textDecorationLine: 'underline',
   },
 });
