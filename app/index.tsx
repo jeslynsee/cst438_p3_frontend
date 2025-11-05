@@ -13,19 +13,19 @@ import Header from "./components/Header";
 
 export default function Login() {
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
 
   const handleSignIn = () => {
     setErrorMsg("");
-    console.log("Attempting sign in with username " + username + " and password " + password);
+    console.log("Attempting sign in with username " + email + " and password " + password);
     // Authentication logic should come from a route in Spring Boot
     // if authenticated, have router push to home/feed page
     // else error message
 
-    if (username.length === 0 || password.length === 0) {
+    if (email.length === 0 || password.length === 0) {
       setErrorMsg("Username and password both required")
     }
   };
@@ -66,8 +66,8 @@ export default function Login() {
                   style={styles.input}
                   placeholder=""
                   placeholderTextColor="gray"
-                  value={username}
-                  onChangeText={setUsername}
+                  value={email}
+                  onChangeText={setEmail}
                   autoCapitalize="none"
                   autoComplete="username"
                 />
