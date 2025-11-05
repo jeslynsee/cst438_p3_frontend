@@ -1,344 +1,228 @@
-import * as ImagePicker from 'expo-image-picker';
-import { useEffect, useState } from 'react';
+// Settings with real actions:
+// - Upload profile photo
+// - Save changes locally
+// - Reset Password (confirm -> "email sent")
+// - Delete Account (confirm -> clear local data -> redirect to /sign-up)
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Image,
-  Modal,
-  Pressable,
+  Alert, Image, Platform,
+  Pressable, ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
-} from 'react-native';
+} from "react-native";
 
-const PALETTE = {
-  bg: '#c6a481',        
-  card: '#f4e9df',       
-  text: '#3a2a1f',       
-  subtext: '#6e5648',
-  line: '#dcc8b7',
-  btn: '#3b2418',         
-  btnText: '#ffffff',
-  accent: '#a4643a',      
-  danger: '#c83a2c',     
-  inputBg: '#ffffff',
-};
+import { clearAllPosts } from "../../src/lib/postsStore";
+import { clearLocalProfile, getLocalProfile, setLocalProfile } from "../../src/lib/profile";
+import { getTeam, setTeam, type Team } from "../../src/lib/team";
 
-type User = { username: string; email: string; team: 'Cats' | 'Dogs'; avatarUri?: string };
+/** Cross-platform confirm (Alert on native, window.confirm on web) */
+async function confirm(title: string, message: string): Promise<boolean> {
+  if (Platform.OS === "web") {
+    // eslint-disable-next-line no-alert
+    return window.confirm(`${title}\n\n${message}`);
+  }
+  return new Promise((resolve) => {
+    Alert.alert(title, message, [
+      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+      { text: "OK", onPress: () => resolve(true) },
+    ]);
+  });
+}
+
+type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null };
 
 export default function SettingsScreen() {
-  const [user, setUser] = useState<User>({ username: '', email: '', team: 'Cats' });
-  const [pwOpen, setPwOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);     
-  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
+  const [user, setUser] = useState<UIUser>({
+    username: "kassandra",
+    email: "kass@example.com",
+    team: "Cats",
+    photoUri: null,
+  });
 
+  // Load saved profile + team
   useEffect(() => {
-    // TODO: fetch real user later
-    setUser({ username: 'kassandra', email: 'kass@example.com', team: 'Cats' });
+    (async () => {
+      const prof = await getLocalProfile();
+      const t = await getTeam();
+      setUser({
+        username: prof.username,
+        email: prof.email,
+        photoUri: prof.photoUri ?? null,
+        team: t === "dogs" ? "Dogs" : "Cats",
+      });
+      setHydrated(true);
+    })();
   }, []);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please allow photo access to upload a profile picture.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.9,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  async function onPickTeam(side: "Cats" | "Dogs") {
+    if (side === user.team) return;
+    setUser(p => ({ ...p, team: side }));
+    const t: Team = side === "Cats" ? "cats" : "dogs";
+    await setTeam(t);
+    Alert.alert("Team updated", `You’re on the ${side} feed now.`);
+  }
+
+  async function uploadPhoto() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (perm.status !== "granted") { Alert.alert("Permission", "Please allow photo access."); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true });
+    if (!res.canceled) setUser(p => ({ ...p, photoUri: res.assets[0].uri }));
+  }
+
+  async function onSaveChanges() {
+    await setLocalProfile({
+      username: user.username,
+      email: user.email,
+      photoUri: user.photoUri ?? null,
     });
-    if (!result.canceled) {
-      setUser({ ...user, avatarUri: result.assets[0].uri });
-    }
-  };
+    Alert.alert("Saved", "Your profile changes were saved locally.");
+  }
 
-  const save = async () => {
-    // TODO: PUT /api/users/me
-    Alert.alert('Saved', 'Changes saved locally (backend not wired yet).');
-  };
+  async function onResetPassword() {
+    const ok = await confirm("Reset Password", `Send a reset link to ${user.email}?`);
+    if (!ok) return;
+    // TODO: replace with real backend call later.
+    Alert.alert("Email sent", "Check your inbox for the reset link.");
+  }
 
-  const resetPassword = async () => {
-    if (!pw.next || pw.next !== pw.confirm) {
-      Alert.alert('Check password', 'New passwords do not match.');
-      return;
-    }
-    // TODO: POST /api/users/reset-password
-    setPw({ current: '', next: '', confirm: '' });
-    setPwOpen(false);
-    Alert.alert('Password updated', 'Password reset stubbed (backend not wired yet).');
-  };
-
-  const BrandButton = ({
-    title,
-    onPress,
-    kind = 'primary',
-  }: {
-    title: string;
-    onPress: () => void;
-    kind?: 'primary' | 'secondary' | 'danger';
-  }) => {
-    const style =
-      kind === 'danger'
-        ? styles.btnDanger
-        : kind === 'secondary'
-        ? styles.btnSecondary
-        : styles.btnPrimary;
-    return (
-      <Pressable onPress={onPress} style={({ pressed }) => [style, pressed && { opacity: 0.9 }]}>
-        <Text style={styles.btnText}>{title}</Text>
-      </Pressable>
+  async function onDeleteAccount() {
+    const ok = await confirm(
+      "Delete Account",
+      "Are you sure? This clears local profile, team, and posts on this device."
     );
-  };
+    if (!ok) return;
+
+    // Clear local data
+    await Promise.all([
+      clearLocalProfile(),
+      AsyncStorage.removeItem("userTeam"),
+      clearAllPosts(),
+    ]);
+
+    // Optional local UI reset
+    setUser({ username: "", email: "", team: "Cats", photoUri: null });
+
+    // Go to sign-up
+    router.replace("/sign-up");
+  }
+
+  if (!hydrated) return null;
 
   return (
-    <View style={styles.page}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Account Settings</Text>
+    <ScrollView style={s.page} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+      <Text style={s.heading}>Account Settings</Text>
 
-        {/* Avatar + upload (extra breathing room & centered) */}
-        <View style={styles.avatarWrap}>
-          {user.avatarUri ? (
-            <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarEmpty]}>
-              <Text style={{ color: PALETTE.subtext }}>No Photo</Text>
-            </View>
-          )}
-          <View style={styles.uploadWrap}>
-            <BrandButton title="Upload profile photo" onPress={pickImage} kind="secondary" />
-          </View>
+      {/* Photo */}
+      <View style={s.photoWrap}>
+        <View style={s.photoCircle}>
+          {user.photoUri
+            ? <Image source={{ uri: user.photoUri }} style={s.photoImg} />
+            : <Text style={s.photoText}>No Photo</Text>}
         </View>
+        <Pressable onPress={uploadPhoto} style={s.uploadBtn}>
+          <Text style={s.uploadTxt}>UPLOAD PROFILE PHOTO</Text>
+        </Pressable>
+      </View>
 
-        {/* Inputs */}
-        <Text style={styles.label}>Username</Text>
+      {/* Username */}
+      <View style={s.fieldBlock}>
+        <Text style={s.label}>Username</Text>
         <TextInput
+          style={s.input}
           value={user.username}
-          onChangeText={(t) => setUser({ ...user, username: t })}
+          onChangeText={(v)=>setUser(p=>({ ...p, username:v }))}
           autoCapitalize="none"
-          style={styles.input}
-          placeholder="Your username"
-          placeholderTextColor={PALETTE.subtext}
         />
+      </View>
 
-        <Text style={styles.label}>Email</Text>
+      {/* Email */}
+      <View style={s.fieldBlock}>
+        <Text style={s.label}>Email</Text>
         <TextInput
-          keyboardType="email-address"
+          style={s.input}
           value={user.email}
-          onChangeText={(t) => setUser({ ...user, email: t })}
+          onChangeText={(v)=>setUser(p=>({ ...p, email:v }))}
+          keyboardType="email-address"
           autoCapitalize="none"
-          style={styles.input}
-          placeholder="name@example.com"
-          placeholderTextColor={PALETTE.subtext}
         />
+      </View>
 
-        {/* Team segmented */}
-        <Text style={styles.label}>Team</Text>
-        <View style={styles.segment}>
+      {/* Team */}
+      <View style={s.fieldBlock}>
+        <Text style={s.label}>Team</Text>
+        <View style={s.segmentWrap}>
           <Pressable
-            onPress={() => setUser({ ...user, team: 'Cats' })}
-            style={[styles.segmentBtn, user.team === 'Cats' ? styles.segmentActive : undefined]}
+            onPress={()=>onPickTeam("Cats")}
+            style={[s.segmentHalf, user.team==="Cats"?s.segmentActive:s.segmentInactive]}
           >
-            <Text style={[styles.segmentText, user.team === 'Cats' ? styles.segmentTextActive : undefined]}>
-              Cats
-            </Text>
+            <Text style={[s.segmentTxt, user.team==="Cats"&&s.segmentTxtActive]}>Cats</Text>
           </Pressable>
           <Pressable
-            onPress={() => setUser({ ...user, team: 'Dogs' })}
-            style={[styles.segmentBtn, user.team === 'Dogs' ? styles.segmentActive : undefined]}
+            onPress={()=>onPickTeam("Dogs")}
+            style={[s.segmentHalf, user.team==="Dogs"?s.segmentActive:s.segmentInactive]}
           >
-            <Text style={[styles.segmentText, user.team === 'Dogs' ? styles.segmentTextActive : undefined]}>
-              Dogs
-            </Text>
+            <Text style={[s.segmentTxt, user.team==="Dogs"&&s.segmentTxtActive]}>Dogs</Text>
           </Pressable>
-        </View>
-
-        {/* Actions */}
-        <View style={{ gap: 10, marginTop: 8 }}>
-          <BrandButton title="Save changes" onPress={save} />
-          <BrandButton title="Reset password" onPress={() => setPwOpen(true)} kind="secondary" />
-          <BrandButton title="Delete account" onPress={() => setConfirmOpen(true)} kind="danger" />{/* ⬅️ open modal */}
         </View>
       </View>
 
-      {/* Password reset modal */}
-      <Modal visible={pwOpen} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={[styles.title, { marginBottom: 8 }]}>Reset Password</Text>
+      {/* Actions */}
+      <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
+        <Text style={s.primaryTxt}>SAVE CHANGES</Text>
+      </Pressable>
 
-            <Text style={styles.label}>Current password</Text>
-            <TextInput secureTextEntry value={pw.current} onChangeText={(t) => setPw({ ...pw, current: t })} style={styles.input} />
-            <Text style={styles.label}>New password</Text>
-            <TextInput secureTextEntry value={pw.next} onChangeText={(t) => setPw({ ...pw, next: t })} style={styles.input} />
-            <Text style={styles.label}>Confirm new password</Text>
-            <TextInput secureTextEntry value={pw.confirm} onChangeText={(t) => setPw({ ...pw, confirm: t })} style={styles.input} />
+      <Pressable onPress={onResetPassword} style={s.secondaryBtn}>
+        <Text style={s.secondaryTxt}>RESET PASSWORD</Text>
+      </Pressable>
 
-            <View style={{ gap: 10, marginTop: 10 }}>
-              <BrandButton title="Save" onPress={resetPassword} />
-              <BrandButton title="Cancel" onPress={() => setPwOpen(false)} kind="secondary" />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete confirmation modal — reliable on Web + native */}
-      <Modal visible={confirmOpen} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={[styles.title, { marginBottom: 8 }]}>Delete Account</Text>
-            <Text style={{ color: PALETTE.subtext, marginBottom: 12 }}>
-              This will permanently remove your account. This action cannot be undone.
-            </Text>
-
-            <Pressable
-              onPress={() => {
-                // TODO: DELETE /api/users/me
-                setConfirmOpen(false);
-                Alert.alert('Deleted', 'Account deletion stubbed (backend not wired yet).');
-              }}
-              style={({ pressed }) => [styles.btnDanger, pressed && { opacity: 0.9 }]}
-            >
-              <Text style={styles.btnText}>Delete</Text>
-            </Pressable>
-
-            <View style={{ height: 10 }} />
-
-            <Pressable
-              onPress={() => setConfirmOpen(false)}
-              style={({ pressed }) => [styles.btnSecondary, pressed && { opacity: 0.9 }]}
-            >
-              <Text style={styles.btnText}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-    </View>
+      <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
+        <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: PALETTE.bg,
-    padding: 16,
-    paddingBottom: 32,
-  },
-  card: {
-    backgroundColor: PALETTE.card,
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 40,           
-    gap: 10,
-    borderWidth: 1,
-    borderColor: PALETTE.line,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: PALETTE.text,
-  },
-  label: {
-    marginTop: 6,
-    marginBottom: 4,
-    fontSize: 14,
-    color: PALETTE.subtext,
-  },
-  input: {
-    backgroundColor: PALETTE.inputBg,
-    borderWidth: 1,
-    borderColor: PALETTE.line,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: PALETTE.text,
-  },
-  avatarWrap: {
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 12,             
-    marginBottom: 12,
-  },
-  uploadWrap: {                
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 999,
-    borderWidth: 3,
-    borderColor: PALETTE.line,
-  },
-  avatarEmpty: {
-    backgroundColor: '#eee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnPrimary: {
-    backgroundColor: PALETTE.btn,
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  btnSecondary: {
-    backgroundColor: PALETTE.accent,
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  btnDanger: {
-    backgroundColor: PALETTE.danger,
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  btnText: {
-    color: PALETTE.btnText,
-    fontWeight: '600',
-    fontSize: 14,
-    lineHeight: 18,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: '#eadbcc',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: PALETTE.line,
-    overflow: 'hidden',
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  segmentActive: {
-    backgroundColor: PALETTE.btn,
-  },
-  segmentText: {
-    color: PALETTE.text,
-    fontWeight: '600',
-  },
-  segmentTextActive: {
-    color: '#fff',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalCard: {
-    backgroundColor: PALETTE.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: PALETTE.line,
-  },
+/* your palette/look */
+const colors = {
+  bg:"#E9D8C8", card:"#F3E7DA", dark:"#3B261A", mid:"#9B6A44",
+  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
+};
+const s = StyleSheet.create({
+  page:{ flex:1, backgroundColor:colors.bg },
+  content:{ padding:16, paddingBottom:28 },
+  heading:{ fontSize:28, fontWeight:"900", color:colors.dark, marginBottom:14 },
+
+  photoWrap:{ backgroundColor:colors.card, borderRadius:18, paddingVertical:22, paddingHorizontal:16, alignItems:"center", marginBottom:16 },
+  photoCircle:{ width:110, height:110, borderRadius:55, backgroundColor:colors.cream, alignItems:"center", justifyContent:"center", marginBottom:14, overflow:"hidden" },
+  photoText:{ color:colors.dark, opacity:0.7, fontWeight:"700" },
+  photoImg:{ width:110, height:110 },
+
+  uploadBtn:{ backgroundColor:colors.mid, paddingVertical:10, paddingHorizontal:18, borderRadius:22 },
+  uploadTxt:{ color:colors.white, fontWeight:"900", letterSpacing:0.5 },
+
+  fieldBlock:{ marginBottom:14 },
+  label:{ color:colors.dark, fontWeight:"800", marginBottom:8 },
+  input:{ backgroundColor:colors.white, borderRadius:12, paddingVertical:10, paddingHorizontal:12, borderWidth:1, borderColor:"rgba(59,38,26,0.12)" },
+
+  segmentWrap:{ flexDirection:"row", backgroundColor:colors.cream, borderRadius:10, overflow:"hidden" },
+  segmentHalf:{ flex:1, alignItems:"center", justifyContent:"center", paddingVertical:12 },
+  segmentActive:{ backgroundColor:colors.dark },
+  segmentInactive:{ backgroundColor:"transparent" },
+  segmentTxt:{ fontWeight:"900", color:colors.dark },
+  segmentTxtActive:{ color:"#fff" },
+
+  primaryBtn:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:6 },
+  primaryTxt:{ color:"#fff", fontWeight:"900" },
+  secondaryBtn:{ backgroundColor:colors.mid, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
+  secondaryTxt:{ color:"#fff", fontWeight:"900" },
+  dangerBtn:{ backgroundColor:colors.red, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
+  dangerTxt:{ color:"#fff", fontWeight:"900" },
 });

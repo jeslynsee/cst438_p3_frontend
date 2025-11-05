@@ -1,0 +1,229 @@
+import * as ImagePicker from "expo-image-picker";
+import { MediaTypeOptions } from "expo-image-picker";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+import ConfettiCannon from "react-native-confetti-cannon";
+import { getRandomImage } from "../../src/lib/imageAPI";
+import { addPost } from "../../src/lib/postsStore";
+import { getLocalProfile } from "../../src/lib/profile";
+import { getTeam, type Team } from "../../src/lib/team";
+
+export default function CreatePost() {
+  const router = useRouter();
+
+  const [team, setTeam] = useState<Team>("cats");
+  const [author, setAuthor] = useState("");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [imageURL, setImageURL] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
+
+  async function hydrateTeam() { const t = await getTeam(); if (t) setTeam(t); }
+  async function hydrateAuthor() { const p = await getLocalProfile(); setAuthor(p.username); }
+
+  useEffect(() => { hydrateTeam(); hydrateAuthor(); }, []);
+  useFocusEffect(useCallback(() => { hydrateTeam(); hydrateAuthor(); }, []));
+
+  async function pickImage() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (perm.status !== "granted") { Alert.alert("Permission needed", "Allow photo access."); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.9,
+    });
+    if (!result.canceled) setImageURL(result.assets[0].uri);
+  }
+
+  async function autoImage() {
+    const url = await getRandomImage(team);
+    if (!url) Alert.alert("Oops", "Couldn't fetch a random image right now.");
+    setImageURL(url ?? null);
+  }
+
+  function clearImage() { setImageURL(null); }
+
+  async function submit() {
+    if (!title.trim() || !body.trim() || !author.trim()) {
+      Alert.alert("Missing info", "Please fill in title, body, and author.");
+      return;
+    }
+    await addPost({ title: title.trim(), body: body.trim(), author: author.trim(), team, imageURL });
+    setTitle(""); setBody(""); setImageURL(null);
+    setCelebrate(true);
+    setTimeout(() => { setCelebrate(false); router.replace("/top-posts"); }, 1500);
+  }
+
+  const Wrapper: React.ComponentType<any> =
+    Platform.OS === "ios" || Platform.OS === "android" ? KeyboardAvoidingView : View;
+
+  return (
+    <Wrapper {...(Platform.OS !== "web" ? { behavior: "padding" } : {})} style={{ flex: 1 }}>
+      <View style={s.header}>
+        <Text style={s.headerTitle}>New {team === "dogs" ? "Dog" : "Cat"} Post</Text>
+        <TouchableOpacity onPress={submit} style={s.headerAction} accessibilityRole="button">
+          <Text style={s.headerActionTxt}>Post</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={s.wrap} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <Text style={s.label}>Title</Text>
+        <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Catchy headline" />
+
+        <Text style={s.label}>Body</Text>
+        <TextInput
+          style={[s.input, s.textarea]}
+          value={body}
+          onChangeText={setBody}
+          placeholder="What's on your mind?"
+          multiline
+        />
+
+        <Text style={s.label}>Author</Text>
+        <TextInput style={s.input} value={author} onChangeText={setAuthor} placeholder="Your name" />
+
+        {/* Image card */}
+        {!!imageURL && (
+          <View style={s.imageCard}>
+            <Image source={{ uri: imageURL }} style={s.image} resizeMode="cover" />
+          </View>
+        )}
+
+        {/* Actions row */}
+        <View style={s.row}>
+          {imageURL ? (
+            <TouchableOpacity onPress={clearImage} style={[s.btn, s.tertiary]}>
+              <Text style={s.btnTxtDark}>Remove Photo</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity onPress={pickImage} style={[s.btn, s.secondary]}>
+                <Text style={s.btnTxtDark}>Upload Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={autoImage} style={[s.btn, s.secondary]}>
+                <Text style={s.btnTxtDark}>Random {team === "dogs" ? "Dog" : "Cat"}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        {/* Spacer so last row isn't flush against the bottom on mobile */}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* 🎉 Confetti overlay */}
+      {celebrate && (
+        <ConfettiCannon
+          count={120}
+          origin={{ x: 0, y: 0 }}
+          fadeOut
+          fallSpeed={2400}
+          explosionSpeed={360}
+        />
+      )}
+    </Wrapper>
+  );
+}
+
+/* palette keeps your warm aesthetic */
+const colors = {
+  bg: "#FFF7EE",
+  dark: "#3B1F12",
+  accent: "#3B1F12",
+  chip: "#EADBC8",
+  chipAlt: "#EFE1D2",
+  white: "#FFFFFF",
+  border: "rgba(59,31,18,0.10)",
+};
+
+const s = StyleSheet.create({
+  /* Top bar with right-aligned Post button */
+  header: {
+    backgroundColor: colors.bg,
+    paddingTop: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTitle: { fontSize: 26, fontWeight: "900", color: colors.dark },
+  headerAction: {
+    backgroundColor: colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  headerActionTxt: { color: "#fff", fontWeight: "900", letterSpacing: 0.2 },
+
+  wrap: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: 16, paddingBottom: 120 },
+
+  label: { marginTop: 10, marginBottom: 6, color: colors.dark, fontWeight: "700" },
+  input: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  textarea: { minHeight: 120, textAlignVertical: "top", lineHeight: 20 },
+
+  /* Nicer image “card” with subtle border + shadow and fixed 16:9 */
+  imageCard: {
+    marginTop: 12,
+    width: "100%",
+    maxWidth: 900,
+    alignSelf: "center",
+    aspectRatio: 16 / 9,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  image: { width: "100%", height: "100%" },
+
+  row: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    flexWrap: "wrap",
+  },
+
+  btn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondary: { backgroundColor: colors.chip },
+  tertiary: { backgroundColor: colors.chipAlt },
+  btnTxtDark: { color: colors.dark, fontWeight: "900" },
+});
