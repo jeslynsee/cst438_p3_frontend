@@ -9,9 +9,10 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import useGithubAuth from '../hooks/useGithubAuth';
+import useGoogleAuth from '../hooks/useGoogleAuth';
 import Header from "./components/Header";
 import { useSession } from "./context/userContext";
-
 
 export default function Login() {
   const { signIn } = useSession();
@@ -19,6 +20,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
+  const {request, promptAsync} = useGithubAuth();
+  const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
+  const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
+
 
   const handleSignIn = async () => {
     setErrorMsg("");
@@ -72,7 +77,7 @@ export default function Login() {
 
   //OAuth2
   const handleGithubSignIn = () => {
-    console.log("Need to get OAuth working");
+    router.push("http://localhost:8080/login/oauth2/code/github");
     // need to set up route in backend for this
   }
 
@@ -145,7 +150,7 @@ export default function Login() {
             <View style={styles.socialButtons}>
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={handleGoogleSignIn}
+                onPress={() => promptGoogle()}
               >
                 <View style={styles.googleIcon}>
                   <View style={styles.googleIconInner} />
@@ -155,8 +160,8 @@ export default function Login() {
 
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={handleGithubSignIn}
-              >
+                onPress={() => promptGithub()}
+                >
                 <View style={styles.githubIcon}>
                   <View style={styles.githubIconInner} />
                 </View>
