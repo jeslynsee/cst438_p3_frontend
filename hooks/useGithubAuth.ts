@@ -1,4 +1,3 @@
-// useGithubAuth.js
 import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
@@ -28,5 +27,5 @@ export default function useGithubAuth() {
     }
   }, [response]);
 
-  return { request, promptAsync };
+  return { request, response, promptAsync };
 }

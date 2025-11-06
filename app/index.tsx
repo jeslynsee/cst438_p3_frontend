@@ -9,6 +9,7 @@ import {
   View
 } from 'react-native';
 import useGithubAuth from '../hooks/useGithubAuth';
+import useGoogleAuth from '../hooks/useGoogleAuth';
 import Header from "./components/Header";
 
 export default function Login() {
@@ -18,6 +19,9 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
   const {request, promptAsync} = useGithubAuth();
+  const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
+  const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
+
 
   const handleSignIn = () => {
     setErrorMsg("");
@@ -112,7 +116,7 @@ export default function Login() {
             <View style={styles.socialButtons}>
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={handleGoogleSignIn}
+                onPress={() => promptGoogle()}
               >
                 <View style={styles.googleIcon}>
                   <View style={styles.googleIconInner} />
@@ -122,7 +126,7 @@ export default function Login() {
 
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={() => promptAsync()}
+                onPress={() => promptGithub()}
                 >
                 <View style={styles.githubIcon}>
                   <View style={styles.githubIconInner} />

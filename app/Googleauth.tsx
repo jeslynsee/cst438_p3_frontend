@@ -1,30 +1,41 @@
-// import React from "react";
-// import { Button, StyleSheet } from "react-native";
-// import { useSession } from "@/hooks/ctx";
-// import { router } from "expo-router";
+import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { useEffect } from 'react';
+import { Button } from 'react-native';
 
+WebBrowser.maybeCompleteAuthSession();
 
-// export default function AuthScreen() {
-//   const { signIn } = useSession();
+const discovery = {
+    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenEndpoint: 'https://oauth2.googleapis.com/token',
+    revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+};
 
-//   const handleSignIn = async () => {
-//     await signIn();
-//     router.replace("/");
-//   };
+export default function App() {
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId: '366799522871-msh7bhdtiba2uamii6ovtug044sqrtor.apps.googleusercontent.com',
+      scopes: ['openid', 'profile', 'email'],
+      redirectUri: makeRedirectUri({
+        scheme: 'your.app'
+      }),
+    },
+    discovery
+  );
 
-//   return (
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { code } = response.params;
+    }
+  }, [response]);
 
-//         <Button
-//           title="Sign In With Google"
-//           onPress={handleSignIn}
-//         />
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: "space-around",
-//     alignItems: "center",
-//   },
-// });
+  return (
+    <Button
+      disabled={!request}
+      title="Login"
+      onPress={() => {
+        promptAsync();
+      }}
+    />
+  );
+}
