@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "claws_and_paws",
-    "slug": "claws_and_paws",
+    "name": "Claws and Paws",
+    "slug": "Claws and Paws",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "clawsandpaws",
+    "icon": "./assets/images/clawsnpaws_icon.png",
+    "scheme": "your.app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -23,14 +23,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/clawsnpaws_icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/clawsnpaws_icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
