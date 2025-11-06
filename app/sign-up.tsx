@@ -17,7 +17,7 @@ export default function SignUp() {
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const router = useRouter();
-
+//TODO: Connect backend to this page
     const handleSignUp = () => {
         setErrorMsg("");
         // standard error checks: are fields empty?
