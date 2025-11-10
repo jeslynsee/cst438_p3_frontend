@@ -1,18 +1,18 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { RadioButton } from "react-native-paper";
 import Header from "./components/Header";
 
 export default function SignUp() {
-
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -21,7 +21,7 @@ export default function SignUp() {
 
     const router = useRouter();
 //TODO: Connect backend to this page
-    const handleSignUp = () => {
+    const handleSignUp = async () => {
         setErrorMsg("");
         // standard error checks: are fields empty?
         if (username.length === 0 || email.length === 0 || password.length === 0 || team === "") {
@@ -29,11 +29,48 @@ export default function SignUp() {
         } else {
             // TODO after setting up backend: standard errors avoided, so now check first if user exists 
             // if user exists, set another error message
+            try {
+              const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/existing", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json", // shows we are going to pass a JSON body
+                  "Accept": "application/json" // we'll accept a JSON body back
+                },
+                body: JSON.stringify({ username, email })
+                });
 
-            // else call to backend route to create a new user
+                const data = await response.text();
+                console.log(data);
+               
+                if (data === "false") { // if account doesn't exist 
+                 
+                  // Route that creates/saves a user
+                  const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ username, password, email, team })
+                  });
+
+                  if (response.ok) { // if it works
+                    Alert.alert("Account creation successful! Login now to continue.");
+                    // redirect to login page
+                    router.replace("/");
+                  }
+                 
+                } else {
+                  setErrorMsg("Account already exists. Try again.");
+                  return;
+                }
+        
+            } catch (e) {
+        
+              console.log("Error being caught in signup process: " + e);
+        
+            }
             
-            //reroute to login page, so user can sign in
-            router.replace("/");
         }
        
 

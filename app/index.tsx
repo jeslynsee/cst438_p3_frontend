@@ -38,10 +38,8 @@ export default function Login() {
     // if authenticated, have router push to home/feed page
     // else error message
 
-    // FOR TESTING ANDROID: http://10.0.2.2:8080/api/users 
-    // FOR TESTING WEB: replace 10.0.2.2 with localhost
     try {
-      const response = await fetch("http://10.0.2.2:8080/api/users/login", {
+      const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // shows we are going to pass a JSON body
