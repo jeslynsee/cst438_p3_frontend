@@ -2,11 +2,6 @@ import { Stack } from "expo-router";
 import { SessionProvider } from "./context/userContext";
 
 export default function RootLayout() {
-  // const { session } = useSession();
-  // // if logged in, go directly to tabs
-  // if (session) {
-  //   return <Redirect href="/(tabs)/feed" />;
-  // }
 
   return (
     // wrapping app only once with Session Provider to avoid making another "context" with it

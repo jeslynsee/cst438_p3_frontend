@@ -26,18 +26,16 @@ export function useStorageState(key: string): UseStateHook<string> {
     let isMounted = true;
 
     const load = async () => {
-      console.log("Restoring session for key:", key);
+
       try {
         if (Platform.OS === "web") {
           const value = localStorage.getItem(key);
-          console.log("Restored from localStorage:", value);
           if (isMounted) {
             setState(value);
             setIsLoading(false);
           }
         } else {
           const value = await SecureStore.getItemAsync(key);
-          console.log("Restored from SecureStore:", value);
           if (isMounted) {
             setState(value);
             setIsLoading(false);

@@ -39,7 +39,7 @@ async function confirm(title: string, message: string): Promise<boolean> {
 type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null };
 
 export default function SettingsScreen() {
-  const { session } = useSession();
+  const { session, signOut } = useSession();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<UIUser>({
@@ -117,6 +117,10 @@ export default function SettingsScreen() {
     router.replace("/sign-up");
   }
 
+  const onSignOut = async () => {
+    await signOut();
+  }
+
   if (!hydrated) return null;
 
   return (
@@ -189,9 +193,13 @@ export default function SettingsScreen() {
       <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
         <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
       </Pressable>
+
+      <Pressable onPress={onSignOut} style={s.signOutButton}>
+        <Text style={s.signOutTxt}>SIGN OUT</Text>
+      </Pressable>
+
     </ScrollView>
 
-    // TODO: LOG OUT BUTTON HERE
   );
 }
 
@@ -230,4 +238,7 @@ const s = StyleSheet.create({
   secondaryTxt:{ color:"#fff", fontWeight:"900" },
   dangerBtn:{ backgroundColor:colors.red, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
   dangerTxt:{ color:"#fff", fontWeight:"900" },
+  signOutButton:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
+  signOutTxt: { color:"#fff", fontWeight:"900" }
+
 });
