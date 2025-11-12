@@ -16,6 +16,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSession } from "../context/userContext";
 
 import { clearAllPosts } from "../../src/lib/postsStore";
 import { clearLocalProfile, getLocalProfile, setLocalProfile } from "../../src/lib/profile";
@@ -24,7 +25,7 @@ import { getTeam, setTeam, type Team } from "../../src/lib/team";
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
   if (Platform.OS === "web") {
-    // eslint-disable-next-line no-alert
+     
     return window.confirm(`${title}\n\n${message}`);
   }
   return new Promise((resolve) => {
@@ -38,14 +39,16 @@ async function confirm(title: string, message: string): Promise<boolean> {
 type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null };
 
 export default function SettingsScreen() {
+  const { session } = useSession();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<UIUser>({
-    username: "kassandra",
-    email: "kass@example.com",
-    team: "Cats",
+    username: session.username,
+    email: session.email,
+    team: session.team,
     photoUri: null,
   });
+
 
   // Load saved profile + team
   useEffect(() => {
@@ -53,10 +56,10 @@ export default function SettingsScreen() {
       const prof = await getLocalProfile();
       const t = await getTeam();
       setUser({
-        username: prof.username,
-        email: prof.email,
+        username: user.username,
+        email: user.email,
         photoUri: prof.photoUri ?? null,
-        team: t === "dogs" ? "Dogs" : "Cats",
+        team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
       });
       setHydrated(true);
     })();
@@ -187,6 +190,8 @@ export default function SettingsScreen() {
         <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
       </Pressable>
     </ScrollView>
+
+    // TODO: LOG OUT BUTTON HERE
   );
 }
 

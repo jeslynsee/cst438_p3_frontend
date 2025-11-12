@@ -18,10 +18,13 @@ export function useSession() {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState("session");
 
+  console.log("Provider session value:", session); // debug print
+
   return (
     <UserContext.Provider
       value={{
         signIn: async (user: any) => {
+          console.log("Saving session:", user); // debug print statement
           // store the full user object as session because we will need user info to display and persist
           setSession(JSON.stringify(user)); // convert object to string for storage
         },

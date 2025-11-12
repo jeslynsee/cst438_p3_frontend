@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Redirect, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -15,7 +15,7 @@ import Header from "./components/Header";
 import { useSession } from "./context/userContext";
 
 export default function Login() {
-  const { signIn } = useSession();
+  const { signIn, isLoading, session } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -24,6 +24,24 @@ export default function Login() {
   const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
   const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
 
+  const [isReady, setIsReady] = useState(false);
+
+  // useEffect handles problem we had where once user is logged in and tries to exit out of and restart app, gets directed back to login
+  // isReady flag helps us know when session should be checked, so it isn't done early, and we don't keep redirecting here
+  useEffect(() => {
+    if (!isLoading) {
+      setIsReady(true);
+    }
+  }, [isLoading]);
+
+   // wait for storage to load
+   if (!isReady) {
+    return null; 
+  }
+ // storage is loaded, now we know if user session stored, to redirect to feed, so logged in user isn't stuck on login page
+  if (session) {
+    return <Redirect href="/(tabs)/feed" />;
+  }
 
   const handleSignIn = async () => {
     setErrorMsg("");
