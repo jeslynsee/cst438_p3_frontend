@@ -30,12 +30,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen 
-        name="feed-kass" 
-        options={{ 
-          title: "Home (Kass)" 
-          }} 
-      />
-      <Tabs.Screen 
       name="top-posts" 
       options={{ 
         title: "Top Posts" 
@@ -52,7 +46,13 @@ export default function TabLayout() {
         options={{ 
           title: 'Settings' }}
       />
-
+      <Tabs.Screen
+        name="winners"
+        options={{
+          title: "Winners",
+          href: null,                
+        }}
+      />
     </Tabs>
   );
 }
