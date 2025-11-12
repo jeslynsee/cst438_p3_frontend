@@ -1,6 +1,7 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Redirect, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,10 +12,11 @@ import {
 import useGithubAuth from '../hooks/useGithubAuth';
 import useGoogleAuth from '../hooks/useGoogleAuth';
 import Header from "./components/Header";
+import { useSession } from "./context/userContext";
 
 export default function Login() {
-
-  const [username, setUsername] = useState("");
+  const { signIn, isLoading, session } = useSession();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
@@ -22,17 +24,65 @@ export default function Login() {
   const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
   const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
 
+  const [isReady, setIsReady] = useState(false);
 
-  const handleSignIn = () => {
+  // useEffect handles problem we had where once user is logged in and tries to exit out of and restart app, gets directed back to login
+  // isReady flag helps us know when session should be checked, so it isn't done early, and we don't keep redirecting here
+  useEffect(() => {
+    if (!isLoading) {
+      setIsReady(true);
+    }
+  }, [isLoading]);
+
+   // wait for storage to load
+   if (!isReady) {
+    return null; 
+  }
+ // storage is loaded, now we know if user session stored, to redirect to feed, so logged in user isn't stuck on login page
+  if (session) {
+    return <Redirect href="/(tabs)/feed" />;
+  }
+
+  const handleSignIn = async () => {
     setErrorMsg("");
-    console.log("Attempting sign in with username " + username + " and password " + password);
+
+    if (email.length === 0 || password.length === 0) {
+      setErrorMsg("Username and password both required");
+      return;
+    }
+
+    console.log("Attempting sign in with username " + email + " and password " + password);
     // Authentication logic should come from a route in Spring Boot
     // if authenticated, have router push to home/feed page
     // else error message
 
-    if (username.length === 0 || password.length === 0) {
-      setErrorMsg("Username and password both required")
+    try {
+      const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // shows we are going to pass a JSON body
+          "Accept": "application/json" // we'll accept a JSON body back
+        },
+        body: JSON.stringify({ email, password })
+        });
+
+        if (response.status === 200) {
+          Alert.alert("Login successful!");
+          const data = await response.json();
+          await signIn(data.user);
+          router.replace("/(tabs)/feed");
+        } else {
+          setErrorMsg("Login credentials invalid. Try again.");
+        }
+
+    } catch (e) {
+
+      console.log("Error being caught in login process: " + e);
+
     }
+    
+
+   
   };
 
   //OAuth2
@@ -65,14 +115,14 @@ export default function Login() {
           <View style={styles.formContainer}>
             {/* Username Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Username</Text>
+              <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
                   placeholder=""
                   placeholderTextColor="gray"
-                  value={username}
-                  onChangeText={setUsername}
+                  value={email}
+                  onChangeText={setEmail}
                   autoCapitalize="none"
                   autoComplete="username"
                 />

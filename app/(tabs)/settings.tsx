@@ -16,6 +16,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSession } from "../context/userContext";
 
 import { clearAllPosts } from "../../src/lib/postsStore";
 import { clearLocalProfile, getLocalProfile, setLocalProfile } from "../../src/lib/profile";
@@ -24,7 +25,7 @@ import { getTeam, setTeam, type Team } from "../../src/lib/team";
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
   if (Platform.OS === "web") {
-    // eslint-disable-next-line no-alert
+     
     return window.confirm(`${title}\n\n${message}`);
   }
   return new Promise((resolve) => {
@@ -38,14 +39,16 @@ async function confirm(title: string, message: string): Promise<boolean> {
 type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null };
 
 export default function SettingsScreen() {
+  const { session, signOut } = useSession();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<UIUser>({
-    username: "kassandra",
-    email: "kass@example.com",
-    team: "Cats",
+    username: session.username,
+    email: session.email,
+    team: session.team,
     photoUri: null,
   });
+
 
   // Load saved profile + team
   useEffect(() => {
@@ -53,10 +56,10 @@ export default function SettingsScreen() {
       const prof = await getLocalProfile();
       const t = await getTeam();
       setUser({
-        username: prof.username,
-        email: prof.email,
+        username: user.username,
+        email: user.email,
         photoUri: prof.photoUri ?? null,
-        team: t === "dogs" ? "Dogs" : "Cats",
+        team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
       });
       setHydrated(true);
     })();
@@ -112,6 +115,10 @@ export default function SettingsScreen() {
 
     // Go to sign-up
     router.replace("/sign-up");
+  }
+
+  const onSignOut = async () => {
+    await signOut();
   }
 
   if (!hydrated) return null;
@@ -186,7 +193,13 @@ export default function SettingsScreen() {
       <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
         <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
       </Pressable>
+
+      <Pressable onPress={onSignOut} style={s.signOutButton}>
+        <Text style={s.signOutTxt}>SIGN OUT</Text>
+      </Pressable>
+
     </ScrollView>
+
   );
 }
 
@@ -225,4 +238,7 @@ const s = StyleSheet.create({
   secondaryTxt:{ color:"#fff", fontWeight:"900" },
   dangerBtn:{ backgroundColor:colors.red, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
   dangerTxt:{ color:"#fff", fontWeight:"900" },
+  signOutButton:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
+  signOutTxt: { color:"#fff", fontWeight:"900" }
+
 });

@@ -3,17 +3,18 @@ import { MediaTypeOptions } from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSession } from "../context/userContext";
 
 import ConfettiCannon from "react-native-confetti-cannon";
 import { getRandomImage } from "../../src/lib/imageAPI";
@@ -23,6 +24,7 @@ import { getTeam, type Team } from "../../src/lib/team";
 
 export default function CreatePost() {
   const router = useRouter();
+  const { session } = useSession();
 
   const [team, setTeam] = useState<Team>("cats");
   const [author, setAuthor] = useState("");
@@ -32,7 +34,7 @@ export default function CreatePost() {
   const [celebrate, setCelebrate] = useState(false);
 
   async function hydrateTeam() { const t = await getTeam(); if (t) setTeam(t); }
-  async function hydrateAuthor() { const p = await getLocalProfile(); setAuthor(p.username); }
+  async function hydrateAuthor() { const p = await getLocalProfile(); setAuthor(session.username); }
 
   useEffect(() => { hydrateTeam(); hydrateAuthor(); }, []);
   useFocusEffect(useCallback(() => { hydrateTeam(); hydrateAuthor(); }, []));
