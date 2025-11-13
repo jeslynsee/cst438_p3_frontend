@@ -18,7 +18,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
-  const {request, promptAsync} = useGithubAuth();
   const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
   const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
 

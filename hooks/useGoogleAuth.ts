@@ -16,7 +16,7 @@ export default function useGoogleAuth() {
       clientId: '366799522871-msh7bhdtiba2uamii6ovtug044sqrtor.apps.googleusercontent.com',
       scopes: ['openid', 'profile', 'email'],
       redirectUri: makeRedirectUri({
-        scheme: 'your.app'
+        path: 'feed',      
       }),
     },
     discovery
