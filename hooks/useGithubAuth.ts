@@ -7,15 +7,17 @@ WebBrowser.maybeCompleteAuthSession();
 const discovery = {
   authorizationEndpoint: 'https://github.com/login/oauth/authorize',
   tokenEndpoint: 'https://github.com/login/oauth/access_token',
-  revocationEndpoint: 'https://github.com/settings/connections/applications/<CLIENT_ID>',
+  revocationEndpoint: 'https://github.com/settings/connections/applications/Ov23liUbTaB4he1bfxAS',
 };
 
 export default function useGithubAuth() {
   const [request, response, promptAsync] = useAuthRequest(
     {
-      clientId: 'CLIENT_ID',
+      clientId: 'Ov23liUbTaB4he1bfxAS',
       scopes: ['identity'],
-      redirectUri: makeRedirectUri({ scheme: 'your.app' }),
+      redirectUri: makeRedirectUri({ 
+        path: 'feed',      
+      }),
     },
     discovery
   );
