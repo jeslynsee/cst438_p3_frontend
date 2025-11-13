@@ -2,6 +2,14 @@
 import { createContext, useContext, type PropsWithChildren } from "react";
 import { useStorageState } from "./useStorageState";
 
+type SessionUser = {
+  username: string;
+  email: string;
+  team: "Cats" | "Dogs";
+  photoUri?: string | null;
+  admin?: boolean;
+};
+
 const UserContext = createContext({
   signIn: async (user: any) => {},  // store full user object
   signOut: () => {},
