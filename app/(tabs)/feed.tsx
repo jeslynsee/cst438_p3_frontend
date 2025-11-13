@@ -13,9 +13,9 @@ export default function feed() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <View style={styles.page}>
       
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.content}>
 
             <Header/>
 
@@ -26,16 +26,12 @@ export default function feed() {
   );
 }
 
+const colors = {
+  bg:"#E9D8C8", card:"#F3E7DA", dark:"#3B261A", mid:"#9B6A44",
+  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
+};
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#C4A484",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 35,
-    paddingTop: 20,
-    paddingBottom: 40,
-    alignItems: "flex-start",
-  },
+  page:{ flex:1, backgroundColor:colors.bg },
+  content:{ padding:16, paddingBottom:28 },
+  heading:{ fontSize:28, fontWeight:"900", color:colors.dark, marginBottom:14 }
 });

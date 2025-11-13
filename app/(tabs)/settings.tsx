@@ -47,6 +47,7 @@ export default function SettingsScreen() {
     email: session.email,
     team: session.team,
     photoUri: null,
+    admin: true,
   });
 
 

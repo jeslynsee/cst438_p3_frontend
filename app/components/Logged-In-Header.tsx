@@ -29,7 +29,7 @@ export default function Header() {
           <Text style={styles.feedButtonText}>Favorites</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.feedButton} onPress={() => alert('Brings user to profile page')}>
-          <Text style={styles.feedButtonText}>Profile</Text>
+          <Text style={styles.feedButtonText}>Settings</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     width: '100%',
-    backgroundColor: '#C4A484',
+    backgroundColor: '#E9D8C8',
   },
   logoSection: {
     alignItems: 'flex-start',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', 
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#C4A484',
+    backgroundColor: '#E9D8C8',
   },
   feedTitle: {
     fontSize: 24,

@@ -169,7 +169,7 @@ export default function Login() {
                 onPress={() => promptGoogle()}
               >
                 <View style={styles.googleIcon}>
-                  <View style={styles.googleIconInner} />
+                <View style={styles.googleIconInner} />
                 </View>
                 <Text style={styles.socialButtonText}>Google</Text>
               </TouchableOpacity>
