@@ -32,6 +32,7 @@ export default function TabLayout() {
       <Tabs.Screen name="top-posts" options={{ title: "Top Posts" }} />
       <Tabs.Screen name="create-post" options={{ title: "Post" }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen name="winners" options={{ title: "Winners", href: null, }} />
     </Tabs>
   );
 }
