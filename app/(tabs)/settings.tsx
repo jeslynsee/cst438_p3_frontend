@@ -123,8 +123,12 @@ export default function SettingsScreen() {
 
   if (!hydrated) return null;
 
-  return (
-    <ScrollView style={s.page} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    return (
+    <ScrollView
+      style={s.page}
+      contentContainerStyle={s.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={s.heading}>Account Settings</Text>
 
       {/* Photo */}
@@ -181,25 +185,27 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      {/* Actions */}
-      <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
-        <Text style={s.primaryTxt}>SAVE CHANGES</Text>
-      </Pressable>
+      {/* WRAP ACTION BUTTONS IN A VIEW TO FIX SCROLLVIEW CLOSING */}
+      <View style={{ marginTop: 10 }}>
+        <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
+          <Text style={s.primaryTxt}>SAVE CHANGES</Text>
+        </Pressable>
 
-      <Pressable onPress={onResetPassword} style={s.secondaryBtn}>
-        <Text style={s.secondaryTxt}>RESET PASSWORD</Text>
-      </Pressable>
+        <Pressable onPress={onResetPassword} style={s.secondaryBtn}>
+          <Text style={s.secondaryTxt}>RESET PASSWORD</Text>
+        </Pressable>
 
-      <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
-        <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
-      </Pressable>
+        <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
+          <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
+        </Pressable>
 
-      <Pressable onPress={onSignOut} style={s.signOutButton}>
-        <Text style={s.signOutTxt}>SIGN OUT</Text>
-      </Pressable>
+        <Pressable onPress={onSignOut} style={s.signOutButton}>
+          <Text style={s.signOutTxt}>SIGN OUT</Text>
+        </Pressable>
+      </View>
+      {/* END OF FIXED WRAPPER VIEW */}
 
     </ScrollView>
-
   );
 }
 
@@ -242,3 +248,4 @@ const s = StyleSheet.create({
   signOutTxt: { color:"#fff", fontWeight:"900" }
 
 });
+
