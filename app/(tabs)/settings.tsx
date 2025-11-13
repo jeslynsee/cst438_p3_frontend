@@ -4,6 +4,10 @@
 // - Reset Password (confirm -> "email sent")
 // - Delete Account (confirm -> clear local data -> redirect to /sign-up)
 
+// Admin Settings
+// - Delete user accounts
+// - Delete user post
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -36,7 +40,7 @@ async function confirm(title: string, message: string): Promise<boolean> {
   });
 }
 
-type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null };
+type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null; admin: boolean; };
 
 export default function SettingsScreen() {
   const { session, signOut } = useSession();
@@ -47,6 +51,7 @@ export default function SettingsScreen() {
     email: session.email,
     team: session.team,
     photoUri: null,
+    admin: session.admin,
   });
 
 
@@ -60,6 +65,7 @@ export default function SettingsScreen() {
         email: user.email,
         photoUri: prof.photoUri ?? null,
         team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
+        admin: user.admin,
       });
       setHydrated(true);
     })();
@@ -111,7 +117,7 @@ export default function SettingsScreen() {
     ]);
 
     // Optional local UI reset
-    setUser({ username: "", email: "", team: "Cats", photoUri: null });
+    setUser({ username: "", email: "", team: "Cats", photoUri: null, admin: false });
 
     // Go to sign-up
     router.replace("/sign-up");
@@ -180,6 +186,13 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* Admin Features */}
+      {user?.admin && (
+        <Pressable onPress={() => router.push("/admin-settings")} style={s.dangerBtn}>
+          <Text style={s.primaryTxt}>ADMIN SETTINGS</Text>
+        </Pressable>
+      )}
 
       {/* Actions */}
       <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
