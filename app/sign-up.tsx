@@ -1,36 +1,76 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { RadioButton } from "react-native-paper";
 import Header from "./components/Header";
 
 export default function SignUp() {
-
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
-    const router = useRouter();
+    const [team, setTeam] = useState("");
 
-    const handleSignUp = () => {
+    const router = useRouter();
+//TODO: Connect backend to this page
+    const handleSignUp = async () => {
         setErrorMsg("");
         // standard error checks: are fields empty?
-        if (username.length === 0 || email.length === 0 || password.length === 0) {
+        if (username.length === 0 || email.length === 0 || password.length === 0 || team === "") {
             setErrorMsg("All fields must be filled.");
         } else {
             // TODO after setting up backend: standard errors avoided, so now check first if user exists 
             // if user exists, set another error message
+            try {
+              const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/existing", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json", // shows we are going to pass a JSON body
+                  "Accept": "application/json" // we'll accept a JSON body back
+                },
+                body: JSON.stringify({ username, email })
+                });
 
-            // else call to backend route to create a new user
+                const data = await response.text();
+                console.log(data);
+               
+                if (data === "false") { // if account doesn't exist 
+                 
+                  // Route that creates/saves a user
+                  const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ username, password, email, team })
+                  });
+
+                  if (response.ok) { // if it works
+                    Alert.alert("Account creation successful! Login now to continue.");
+                    // redirect to login page
+                    router.replace("/");
+                  }
+                 
+                } else {
+                  setErrorMsg("Account already exists. Try again.");
+                  return;
+                }
+        
+            } catch (e) {
+        
+              console.log("Error being caught in signup process: " + e);
+        
+            }
             
-            //reroute to login page, so user can sign in
-            router.replace("/");
         }
        
 
@@ -109,7 +149,21 @@ export default function SignUp() {
               </View>
             </View>
 
-            {/* TODO: Need to add a dropdown menu to choose Team Cats or Team Dogs */}
+            {/* radio button section to choose Team Cats or Team Dogs */}
+            <View>
+              <RadioButton.Group onValueChange={newValue => setTeam(newValue)} value={team}>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.radioLabel}> Select Team: </Text>
+                  <RadioButton value="cat" />
+                  <Text style={styles.radioLabel}>Cat</Text>
+                  <RadioButton value="dog" />
+                  <Text style={styles.radioLabel}>Dog</Text>
+                </View>
+
+              </RadioButton.Group>
+
+            </View>
 
             {/* Sign Up */}
             <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
@@ -173,6 +227,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'rgba(38, 50, 56, 0.6)',
         letterSpacing: 0.16,
+      },
+      radioLabel: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#263238',
+        // fontStyle: 'bold'
       },
       signUpButton: {
         height: 50,
