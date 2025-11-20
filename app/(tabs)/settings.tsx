@@ -4,10 +4,6 @@
 // - Reset Password (confirm -> "email sent")
 // - Delete Account (confirm -> clear local data -> redirect to /sign-up)
 
-// Admin Settings
-// - Delete user accounts
-// - Delete user post
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -51,7 +47,7 @@ export default function SettingsScreen() {
     email: session.email,
     team: session.team,
     photoUri: null,
-    admin: session.admin,
+    admin: session.admin
   });
 
 
