@@ -16,8 +16,9 @@ import {
 } from "react-native";
 
 import { clearAllPosts } from "../../src/lib/postsStore";
-import { clearLocalProfile, getLocalProfile, setLocalProfile } from "../../src/lib/profile";
+import { clearLocalProfile, getLocalProfile } from "../../src/lib/profile";
 import { getTeam } from "../../src/lib/team";
+import { useSession } from "../context/userContext";
 
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
@@ -33,16 +34,14 @@ async function confirm(title: string, message: string): Promise<boolean> {
   });
 }
 
-type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null; admin: boolean; };
+type UIUser = { username: string; admin: boolean; };
 
 export default function SettingsScreen() {
+  const { session, signOut } = useSession();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<UIUser>({
     username: session.username,
-    email: session.email,
-    team: session.team,
-    photoUri: null,
     admin: session.admin
   });
 
@@ -62,15 +61,6 @@ export default function SettingsScreen() {
       setHydrated(true);
     })();
   }, []);
-
-  async function onSaveChanges() {
-    await setLocalProfile({
-      username: user.username,
-      email: user.email,
-      photoUri: user.photoUri ?? null,
-    });
-    Alert.alert("Saved", "Your profile changes were saved locally.");
-  }
 
   async function onDeleteOtherAccount() {
     const ok = await confirm(
@@ -127,10 +117,6 @@ export default function SettingsScreen() {
       </View>
 
       {/* Actions */}
-        <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
-          <Text style={s.primaryTxt}>SAVE CHANGES</Text>
-        </Pressable>
-
         {/* Save this for a pop up when selecting account */}
         {/* Will also be used to make popup for when deleting post */}
       
