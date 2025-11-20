@@ -1,5 +1,6 @@
 // jest.config.js
 module.exports = {
   preset: "jest-expo",
-  testEnvironment: "node"
+  testEnvironment: "node",
+  setupFiles: ["./jest.setup.js"]
 };
