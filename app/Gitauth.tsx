@@ -17,7 +17,7 @@ export default function App() {
       clientId: 'Ov23liUbTaB4he1bfxAS',
       scopes: ['identity'],
       redirectUri: makeRedirectUri({
-        scheme: 'your.app'
+        path: 'feed',
       }),
     },
     discovery
