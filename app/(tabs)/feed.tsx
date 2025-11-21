@@ -1,11 +1,14 @@
+// @ts-nocheck
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from 'react-native';
 import Header from "../components/Header";
@@ -31,45 +34,72 @@ export default function Feed() {
     });
   }
 
-  // useEffect function to check if user is Team Cat or Team Dog, then display only that team's posts
-  useEffect(() => {
-   // use session.team to determine if team cat or dog posts will be displayed
-   const fetchTeamPosts = async () => {
-
+  // this grabs the team posts based on user's team (cat or dog)
+  const fetchTeamPosts = async () => {
     try {
-      const response = await fetch(`https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/${session.team}`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json" 
-        }
-      });
-  
+      const response = await fetch(
+        `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/${session.team}`
+      );
       const data = await response.json();
-      console.log("Current team posts: " + data);
       setPosts(data);
-
-    } catch (error) {
-      console.log("Error being caught: " + error);
+    } catch (err) {
+      console.error("Error fetching team posts:", err);
     }
-   
-
-   };
-
-   // below ensures we have access to the session/user info of team before trying to call API with user's team (cat or dog)
-   if (session?.team) {
+  };
+  
+  // we know which posts to render (only cat or only dog) from user's team once session is ready to give that info
+  useEffect(() => {
+    if (!session?.team) return; 
     fetchTeamPosts();
-  }
-
   }, [session?.team]);
 
 
+  //TODO: Need to grab usernames of each post's user
+  
   // render each item in FlatList
+  // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
   const renderPost = ({ item }) => (
     <View style={styles.postCard}>
-      <Text style={styles.postUsername}>{item.user?.username || "Unknown User"}</Text>
+      <Text style={styles.postUsername}>{session.username || "Unknown User"}</Text>
+      <Image 
+        source={item.imageUrl}
+        style={styles.image}
+      />
       <Text style={styles.postDescription}>{item.description}</Text>
+      <View style={styles.postLikesContainer}> 
+      <Text style={styles.postLikes}> {item.likes} </Text>
+      <TouchableOpacity style={styles.postLikeButton} onPress={() => updatePostLikes(item.id)}> 
+        <Text> 👍 </Text>
+      </TouchableOpacity>
+      </View>
     </View>
   );
+
+  const updatePostLikes = async (postId) => {
+    try {
+
+      // update for user first, so clean UI
+      setPosts(prev => prev.map(p =>
+        p.id === postId ? { ...p, likes: p.likes + 1 } : p
+      ));
+  
+      // here we call to the API to actually update the post's like count
+      const response = await fetch(
+        `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/${postId}/like`, { 
+          method: "POST" 
+        }
+      );
+  
+      if (!response.ok) {
+        console.log("Failed to like post");
+      }
+  
+    } catch (error) {
+      console.log("Error updating likes: " + error);
+    }
+    
+  };
+  
 
   
 
@@ -92,11 +122,6 @@ export default function Feed() {
           </Text>
         </View>
       }
-
-      // contentContainerStyle={{
-      //   flexGrow: 1,             // FlatList fills screen
-      //   justifyContent: "center", // centers our text vertically
-      // }}
       
       />
 
@@ -130,7 +155,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
+  image: {
+    width: 100,
+    height: 100
+  },
   postDescription: {
     fontSize: 14,
   },
+  postLikesContainer: {
+    flexDirection: "row",
+  },
+  postLikes: {
+    padding: 10,
+  },
+  postLikeButton: {
+    // borderRadius: 5,
+    marginTop: 10
+  }
 });

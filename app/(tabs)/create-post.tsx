@@ -18,7 +18,6 @@ import { useSession } from "../context/userContext";
 
 import ConfettiCannon from "react-native-confetti-cannon";
 import { getRandomImage } from "../../src/lib/imageAPI";
-import { addPost } from "../../src/lib/postsStore";
 import { getLocalProfile } from "../../src/lib/profile";
 import { getTeam, type Team } from "../../src/lib/team";
 
@@ -29,8 +28,8 @@ export default function CreatePost() {
   const [team, setTeam] = useState<Team>("cats");
   const [author, setAuthor] = useState("");
   const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [imageURL, setImageURL] = useState<string | null>(null);
+  const [description, setBody] = useState("");
+  const [imageUrl, setImageURL] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(false);
 
   async function hydrateTeam() { const t = await getTeam(); if (t) setTeam(t); }
@@ -59,14 +58,41 @@ export default function CreatePost() {
   function clearImage() { setImageURL(null); }
 
   async function submit() {
-    if (!title.trim() || !body.trim() || !author.trim()) {
+    if (!title.trim() || !description.trim() || !author.trim()) {
       Alert.alert("Missing info", "Please fill in title, body, and author.");
       return;
     }
-    await addPost({ title: title.trim(), body: body.trim(), author: author.trim(), team, imageURL });
-    setTitle(""); setBody(""); setImageURL(null);
-    setCelebrate(true);
-    setTimeout(() => { setCelebrate(false); router.replace("/top-posts"); }, 1500);
+
+    try {
+      const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // shows we are going to pass a JSON body
+          "Accept": "application/json" // we'll accept a JSON body back
+        },
+        // have to define userId or else get a JSON body error over period in session.id
+        body: JSON.stringify({ userId: session.id, imageUrl: imageUrl, description: description })
+      });
+
+      // 201 code means post created
+      if (response.status === 201) {
+        setAuthor("");
+        setBody("");
+        setTitle("");
+        setImageURL("");
+        Alert.alert("Post made!");
+        router.push("/(tabs)/feed");
+      } else {
+        Alert.alert("Something went wrong");
+      }
+    } catch (error) {;
+      console.log("Error making post: " + error);
+    }
+
+    // await addPost({ title: title.trim(), body: body.trim(), author: author.trim(), team, imageURL });
+    // setTitle(""); setBody(""); setImageURL(null);
+    // setCelebrate(true);
+    // setTimeout(() => { setCelebrate(false); router.replace("/top-posts"); }, 1500);
   }
 
   const Wrapper: React.ComponentType<any> =
@@ -88,7 +114,7 @@ export default function CreatePost() {
         <Text style={s.label}>Body</Text>
         <TextInput
           style={[s.input, s.textarea]}
-          value={body}
+          value={description}
           onChangeText={setBody}
           placeholder="What's on your mind?"
           multiline
@@ -98,15 +124,15 @@ export default function CreatePost() {
         <TextInput style={s.input} value={author} onChangeText={setAuthor} placeholder="Your name" />
 
         {/* Image card */}
-        {!!imageURL && (
+        {!!imageUrl && (
           <View style={s.imageCard}>
-            <Image source={{ uri: imageURL }} style={s.image} resizeMode="cover" />
+            <Image source={{ uri: imageUrl }} style={s.image} resizeMode="cover" />
           </View>
         )}
 
         {/* Actions row */}
         <View style={s.row}>
-          {imageURL ? (
+          {imageUrl ? (
             <TouchableOpacity onPress={clearImage} style={[s.btn, s.tertiary]}>
               <Text style={s.btnTxtDark}>Remove Photo</Text>
             </TouchableOpacity>
