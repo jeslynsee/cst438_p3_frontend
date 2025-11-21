@@ -49,10 +49,27 @@ export default function CreatePost() {
     if (!result.canceled) setImageURL(result.assets[0].uri);
   }
 
-  async function autoImage() {
-    const url = await getRandomImage(team);
-    if (!url) Alert.alert("Oops", "Couldn't fetch a random image right now.");
-    setImageURL(url ?? null);
+  async function autoImage(userTeam) {
+    if (userTeam === "cat") {
+      const url = await getRandomImage(team);
+      if (!url) Alert.alert("Oops", "Couldn't fetch a random image right now.");
+      setImageURL(url ?? null);
+    } else if (userTeam === "dog") {
+      try {
+        const response = await fetch("https://dog.ceo/api/breeds/image/random");
+        const data = await response.json();
+        const url = data?.message; 
+        
+        if (!url) {
+          Alert.alert("Error trying to fetch photo")
+        } else {
+          setImageURL(url ?? null);
+        }
+      } catch (error) {
+        console.log("Error: " + error);
+      }
+    }
+    
   }
 
   function clearImage() { setImageURL(null); }
@@ -101,7 +118,7 @@ export default function CreatePost() {
   return (
     <Wrapper {...(Platform.OS !== "web" ? { behavior: "padding" } : {})} style={{ flex: 1 }}>
       <View style={s.header}>
-        <Text style={s.headerTitle}>New {team === "dogs" ? "Dog" : "Cat"} Post</Text>
+        <Text style={s.headerTitle}>New Post</Text>
         <TouchableOpacity onPress={submit} style={s.headerAction} accessibilityRole="button">
           <Text style={s.headerActionTxt}>Post</Text>
         </TouchableOpacity>
@@ -141,8 +158,8 @@ export default function CreatePost() {
               <TouchableOpacity onPress={pickImage} style={[s.btn, s.secondary]}>
                 <Text style={s.btnTxtDark}>Upload Photo</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={autoImage} style={[s.btn, s.secondary]}>
-                <Text style={s.btnTxtDark}>Random {team === "dogs" ? "Dog" : "Cat"}</Text>
+              <TouchableOpacity onPress={() => autoImage(session.team)} style={[s.btn, s.secondary]}>
+                <Text style={s.btnTxtDark}>Random {session?.team === "dog" ? "Dog" : "Cat"}</Text>
               </TouchableOpacity>
             </>
           )}

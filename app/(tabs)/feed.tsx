@@ -55,12 +55,14 @@ export default function Feed() {
 
 
   //TODO: Need to grab usernames of each post's user
+  // grab item.userId, then call API for backend route of getUser, which takes in id
+  // once we have user, just grab user's username and display that in flatlist card
   
   // render each item in FlatList
   // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
   const renderPost = ({ item }) => (
     <View style={styles.postCard}>
-      <Text style={styles.postUsername}>{session.username || "Unknown User"}</Text>
+      <Text style={styles.postUsername}>{item.username || "Unknown User"}</Text>
       <Image 
         source={item.imageUrl}
         style={styles.image}
