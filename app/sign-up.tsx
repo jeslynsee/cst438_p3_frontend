@@ -51,7 +51,7 @@ export default function SignUp() {
                       "Content-Type": "application/json",
                       "Accept": "application/json"
                     },
-                    body: JSON.stringify({ username, password, email, team })
+                    body: JSON.stringify({ username: username, password: password, email: email, team: team, admin: false })
                   });
 
                   if (response.ok) { // if it works
