@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -48,10 +48,14 @@ export default function Feed() {
   };
   
   // we know which posts to render (only cat or only dog) from user's team once session is ready to give that info
-  useEffect(() => {
-    if (!session?.team) return; 
-    fetchTeamPosts();
-  }, [session?.team]);
+  // using useFocusEffect and useCallBack instead of useEffect, so when user uploads, automatically shows new post in feed page
+  useFocusEffect(
+    useCallback(() => {
+      if (!session?.team) return;
+      fetchTeamPosts();
+    }, [session?.team])
+  );
+  
 
 
   //TODO: Need to grab usernames of each post's user
@@ -64,7 +68,7 @@ export default function Feed() {
     <View style={styles.postCard}>
       <Text style={styles.postUsername}>{item.username || "Unknown User"}</Text>
       <Image 
-        source={item.imageUrl}
+        source={{ uri: item.imageUrl }}
         style={styles.image}
       />
       <Text style={styles.postDescription}>{item.description}</Text>

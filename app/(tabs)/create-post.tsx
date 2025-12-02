@@ -119,9 +119,6 @@ export default function CreatePost() {
     <Wrapper {...(Platform.OS !== "web" ? { behavior: "padding" } : {})} style={{ flex: 1 }}>
       <View style={s.header}>
         <Text style={s.headerTitle}>New Post</Text>
-        <TouchableOpacity onPress={submit} style={s.headerAction} accessibilityRole="button">
-          <Text style={s.headerActionTxt}>Post</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={s.wrap} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
@@ -165,6 +162,12 @@ export default function CreatePost() {
           )}
         </View>
 
+        <View style={s.btn}>
+        <TouchableOpacity onPress={submit} style={s.headerAction} accessibilityRole="button">
+          <Text style={s.headerActionTxt}>Post</Text>
+        </TouchableOpacity>
+        </View>
+
         {/* Spacer so last row isn't flush against the bottom on mobile */}
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -195,7 +198,7 @@ const colors = {
 };
 
 const s = StyleSheet.create({
-  /* Top bar with right-aligned Post button */
+
   header: {
     backgroundColor: colors.bg,
     paddingTop: 10,
