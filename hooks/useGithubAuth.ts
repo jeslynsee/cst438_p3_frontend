@@ -14,7 +14,7 @@ export default function useGithubAuth() {
   const [request, response, promptAsync] = useAuthRequest(
     {
       clientId: 'Ov23liUbTaB4he1bfxAS',
-      scopes: ['identity'],
+      scopes: ['read:user'],
       redirectUri: 'https://catsvsdogs-web-42f3d8a67c13.herokuapp.com/feed'
     },
     discovery
