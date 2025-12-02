@@ -15,10 +15,10 @@ import {
   View
 } from "react-native";
 
-import { clearAllPosts } from "../../src/lib/postsStore";
-import { clearLocalProfile, getLocalProfile } from "../../src/lib/profile";
-import { getTeam } from "../../src/lib/team";
-import { useSession } from "../context/userContext";
+import { clearAllPosts } from "../src/lib/postsStore";
+import { clearLocalProfile, getLocalProfile } from "../src/lib/profile";
+import { getTeam } from "../src/lib/team";
+import { useSession } from "./context/userContext";
 
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
@@ -38,6 +38,7 @@ type UIUser = { username: string; admin: boolean; };
 
 export default function SettingsScreen() {
   const { session, signOut } = useSession();
+  const [users, setUsers] = useState([]);
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<UIUser>({
@@ -45,19 +46,19 @@ export default function SettingsScreen() {
     admin: session.admin
   });
 
+  // async function getNonAdminUsers() {
+  //   const res = await fetch("http://localhost:8080/api/users/non-admins");
+  //   const data = await res.json();
+  //   return data;
+  // }
+
 
   // Load saved profile + team
   useEffect(() => {
     (async () => {
       const prof = await getLocalProfile();
       const t = await getTeam();
-      setUser({
-        username: user.username,
-        email: user.email,
-        photoUri: prof.photoUri ?? null,
-        team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
-        admin: user.admin,
-      });
+      //getNonAdminUsers().then(setUsers);
       setHydrated(true);
     })();
   }, []);
@@ -94,7 +95,7 @@ export default function SettingsScreen() {
 
 
 
-      {/* Username */}
+      {/* Users */}
       <View style={s.fieldBlock}>
         <Text style={s.label}>Users</Text>
         <TextInput
