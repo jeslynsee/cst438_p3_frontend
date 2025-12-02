@@ -111,7 +111,7 @@ export default function Feed() {
 
 
   return (
-    <View style={styles.container}>
+    <View style={styles.page}>
       
       <View style={styles.header}>
       <Header/>
@@ -136,6 +136,10 @@ export default function Feed() {
 
 }
 
+const colors = {
+  bg:"#E9D8C8", card:"#F3E7DA", dark:"#3B261A", mid:"#9B6A44",
+  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,

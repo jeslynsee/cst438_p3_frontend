@@ -11,6 +11,8 @@ export default function RootLayout() {
       <Stack.Screen name="sign-up" options={ {headerShown: false }} />
       <Stack.Screen name="choose-team" options={{ headerShown: false }}/>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-settings" options={{ headerShown: false }} />
+
     </Stack>
     </SessionProvider>
   );

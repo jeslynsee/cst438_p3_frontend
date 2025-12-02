@@ -1,4 +1,4 @@
-import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
+import { useAuthRequest } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
 
@@ -15,9 +15,7 @@ export default function useGoogleAuth() {
     {
       clientId: '366799522871-msh7bhdtiba2uamii6ovtug044sqrtor.apps.googleusercontent.com',
       scopes: ['openid', 'profile', 'email'],
-      redirectUri: makeRedirectUri({
-        scheme: 'your.app'
-      }),
+      redirectUri: 'https://catsvsdogs-web-42f3d8a67c13.herokuapp.com/feed'
     },
     discovery
   );
