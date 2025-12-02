@@ -1,4 +1,4 @@
-import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
+import { useAuthRequest } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
 
@@ -15,9 +15,7 @@ export default function useGithubAuth() {
     {
       clientId: 'Ov23liUbTaB4he1bfxAS',
       scopes: ['identity'],
-      redirectUri: makeRedirectUri({ 
-        path: 'feed',      
-      }),
+      redirectUri: 'https://catsvsdogs-web-42f3d8a67c13.herokuapp.com/feed'
     },
     discovery
   );
