@@ -33,7 +33,10 @@ export default function CreatePost() {
   const [celebrate, setCelebrate] = useState(false);
 
   async function hydrateTeam() { const t = await getTeam(); if (t) setTeam(t); }
-  async function hydrateAuthor() { const p = await getLocalProfile(); setAuthor(session.username); }
+  async function hydrateAuthor() { 
+    const p = await getLocalProfile(session.id); 
+    setAuthor(session.username); 
+  }
 
   useEffect(() => { hydrateTeam(); hydrateAuthor(); }, []);
   useFocusEffect(useCallback(() => { hydrateTeam(); hydrateAuthor(); }, []));
@@ -50,26 +53,31 @@ export default function CreatePost() {
   }
 
   async function autoImage(userTeam) {
-    if (userTeam === "cat") {
-      const url = await getRandomImage(team);
-      if (!url) Alert.alert("Oops", "Couldn't fetch a random image right now.");
-      setImageURL(url ?? null);
-    } else if (userTeam === "dog") {
-      try {
+    try {
+      if (userTeam === "cat") {
+        // Fetch cat image
+        const url = await getRandomImage("cats"); // Make sure we pass "cats" not team variable
+        if (!url) {
+          Alert.alert("Oops", "Couldn't fetch a random cat image right now.");
+        } else {
+          setImageURL(url);
+        }
+      } else if (userTeam === "dog") {
+        // Fetch dog image
         const response = await fetch("https://dog.ceo/api/breeds/image/random");
         const data = await response.json();
         const url = data?.message; 
         
         if (!url) {
-          Alert.alert("Error trying to fetch photo")
+          Alert.alert("Error", "Couldn't fetch a random dog image right now.");
         } else {
-          setImageURL(url ?? null);
+          setImageURL(url);
         }
-      } catch (error) {
-        console.log("Error: " + error);
       }
+    } catch (error) {
+      console.log("Error fetching random image: " + error);
+      Alert.alert("Error", "Failed to load random image");
     }
-    
   }
 
   function clearImage() { setImageURL(null); }
@@ -84,32 +92,35 @@ export default function CreatePost() {
       const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // shows we are going to pass a JSON body
-          "Accept": "application/json" // we'll accept a JSON body back
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        // have to define userId or else get a JSON body error over period in session.id
         body: JSON.stringify({ userId: session.id, imageUrl: imageUrl, description: description })
       });
 
       // 201 code means post created
       if (response.status === 201) {
+        // Clear form
         setAuthor("");
         setBody("");
         setTitle("");
         setImageURL("");
-        Alert.alert("Post made!");
-        router.push("/(tabs)/feed");
+        
+        // Show confetti
+        setCelebrate(true);
+        
+        // Wait 2 seconds, then navigate to feed
+        setTimeout(() => {
+          setCelebrate(false);
+          router.push("/(tabs)/feed");
+        }, 2000);
+        
       } else {
         Alert.alert("Something went wrong");
       }
-    } catch (error) {;
+    } catch (error) {
       console.log("Error making post: " + error);
     }
-
-    // await addPost({ title: title.trim(), body: body.trim(), author: author.trim(), team, imageURL });
-    // setTitle(""); setBody(""); setImageURL(null);
-    // setCelebrate(true);
-    // setTimeout(() => { setCelebrate(false); router.replace("/top-posts"); }, 1500);
   }
 
   const Wrapper: React.ComponentType<any> =
@@ -122,6 +133,13 @@ export default function CreatePost() {
       </View>
 
       <ScrollView style={s.wrap} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        {/* Team indicator */}
+        <View style={[s.teamIndicator, session.team === "cat" ? s.catTeam : s.dogTeam]}>
+          <Text style={s.teamIndicatorText}>
+            {session.team === "cat" ? "🐱 Posting to CATS feed" : "🐶 Posting to DOGS feed"}
+          </Text>
+        </View>
+
         <Text style={s.label}>Title</Text>
         <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Catchy headline" />
 
@@ -168,25 +186,23 @@ export default function CreatePost() {
         </TouchableOpacity>
         </View>
 
-        {/* Spacer so last row isn't flush against the bottom on mobile */}
         <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* 🎉 Confetti overlay */}
       {celebrate && (
         <ConfettiCannon
-          count={120}
-          origin={{ x: 0, y: 0 }}
+          count={150}
+          origin={{ x: -10, y: 0 }}
           fadeOut
-          fallSpeed={2400}
-          explosionSpeed={360}
+          fallSpeed={3000}
+          explosionSpeed={500}
         />
       )}
     </Wrapper>
   );
 }
 
-/* palette keeps your warm aesthetic */
 const colors = {
   bg: "#FFF7EE",
   dark: "#3B1F12",
@@ -198,7 +214,6 @@ const colors = {
 };
 
 const s = StyleSheet.create({
-
   header: {
     backgroundColor: colors.bg,
     paddingTop: 10,
@@ -223,10 +238,31 @@ const s = StyleSheet.create({
     elevation: 3,
   },
   headerActionTxt: { color: "#fff", fontWeight: "900", letterSpacing: 0.2 },
-
   wrap: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 16, paddingBottom: 120 },
-
+  teamIndicator: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  catTeam: {
+    backgroundColor: "rgba(255, 153, 137, 0.3)",
+    borderWidth: 2,
+    borderColor: "#FF9989",
+  },
+  dogTeam: {
+    backgroundColor: "rgba(120, 170, 255, 0.3)",
+    borderWidth: 2,
+    borderColor: "#78AAFF",
+  },
+  teamIndicatorText: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: colors.dark,
+    letterSpacing: 0.5,
+  },
   label: { marginTop: 10, marginBottom: 6, color: colors.dark, fontWeight: "700" },
   input: {
     backgroundColor: colors.white,
@@ -236,8 +272,6 @@ const s = StyleSheet.create({
     borderColor: colors.border,
   },
   textarea: { minHeight: 120, textAlignVertical: "top", lineHeight: 20 },
-
-  /* Nicer image “card” with subtle border + shadow and fixed 16:9 */
   imageCard: {
     marginTop: 12,
     width: "100%",
@@ -256,14 +290,12 @@ const s = StyleSheet.create({
     elevation: 5,
   },
   image: { width: "100%", height: "100%" },
-
   row: {
     flexDirection: "row",
     gap: 8,
     marginTop: 12,
     flexWrap: "wrap",
   },
-
   btn: {
     paddingVertical: 10,
     paddingHorizontal: 14,
