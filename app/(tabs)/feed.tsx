@@ -112,7 +112,7 @@ export default function Feed() {
       renderItem={renderPost} 
       keyExtractor={(item) => item.id?.toString()}
       ListEmptyComponent={
-        <View style={{ paddingVertical: 40, alignItems: "center" }}>
+        <View style={{ paddingVertical: 20, alignItems: "center" }}>
           <Text style={{ fontSize: 16, color: "#333" }}>
             No posts yet
           </Text>
@@ -152,18 +152,27 @@ const styles = StyleSheet.create({
   postCard: {
     backgroundColor: "#fff",
     borderRadius: 10,
+    borderColor: "gray",
+    borderWidth: 0.5,
     padding: 15,
     marginVertical: 8,
+    alignItems: "center",
+    width: "90%", // using percentage instead of fixed width, so looks good on both web and mobile
+    maxWidth: 600, // helps posts not look zoomed in on mobile
+    alignSelf: "center", // centering card itself
   },
   postUsername: {
     fontWeight: "bold",
-    marginBottom: 5,
+    fontSize: 20,
+    alignSelf: "flex-start", // helps align username to left/start
+    width: "100%", // helps username take full width to sit nicely on top left corner of postCard
   },
   image: {
-    width: 100,
-    height: 100
+    width: 300,
+    height: 200
   },
   postDescription: {
+    padding: 10,
     fontSize: 14,
   },
   postLikesContainer: {
@@ -174,6 +183,8 @@ const styles = StyleSheet.create({
   },
   postLikeButton: {
     // borderRadius: 5,
-    marginTop: 10
+    marginTop: 10,
+    borderColor: "black",
+    borderRadius: 10
   }
 });
