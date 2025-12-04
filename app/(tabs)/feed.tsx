@@ -131,7 +131,7 @@ const colors = {
   cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
 };
 const styles = StyleSheet.create({
-  page: {  // Add this!
+  page: {  
     flex: 1,
     backgroundColor: colors.bg,
   },
