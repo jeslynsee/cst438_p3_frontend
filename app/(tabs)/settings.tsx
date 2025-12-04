@@ -20,8 +20,10 @@ import { useSession } from "../context/userContext";
 import { getLocalProfile, setLocalProfile } from "../../src/lib/profile";
 import { getTeam, setTeam, type Team } from "../../src/lib/team";
 
+/** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
   if (Platform.OS === "web") {
+     
     return window.confirm(`${title}\n\n${message}`);
   }
   return new Promise((resolve) => {
@@ -32,13 +34,7 @@ async function confirm(title: string, message: string): Promise<boolean> {
   });
 }
 
-type UIUser = { 
-  username: string; 
-  email: string; 
-  team: "Cats" | "Dogs"; 
-  photoUri?: string | null; 
-  admin: boolean; 
-};
+type UIUser = { username: string; email: string; team: "Cats" | "Dogs"; photoUri?: string | null; admin: boolean; };
 
 export default function SettingsScreen() {
   const { session, signOut } = useSession();
@@ -47,52 +43,45 @@ export default function SettingsScreen() {
   const [user, setUser] = useState<UIUser>({
     username: session.username,
     email: session.email,
-    team: session.team === "cat" ? "Cats" : "Dogs", // Convert from backend format
+    team: session.team,
     photoUri: null,
     admin: session.admin
   });
 
+
+  // Load saved profile + team
   useEffect(() => {
     (async () => {
-      const prof = await getLocalProfile(session.id);
+      const prof = await getLocalProfile();
       const t = await getTeam();
-      
-      // Properly map team from session
-      const mappedTeam = session.team === "cat" ? "Cats" : "Dogs";
-      
       setUser({
-        username: session.username,
-        email: session.email,
+        username: user.username,
+        email: user.email,
         photoUri: prof.photoUri ?? null,
-        team: mappedTeam,
-        admin: session.admin,
+        team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
+        admin: user.admin,
       });
       setHydrated(true);
     })();
-  }, [session]);
+  }, []);
 
   async function onPickTeam(side: "Cats" | "Dogs") {
     if (side === user.team) return;
-    
     setUser(p => ({ ...p, team: side }));
     const t: Team = side === "Cats" ? "cats" : "dogs";
     await setTeam(t);
-    
-    Alert.alert("Team updated", `You're on the ${side} feed now. Please restart the app to see changes.`);
+    Alert.alert("Team updated", `You’re on the ${side} feed now.`);
   }
 
   async function uploadPhoto() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (perm.status !== "granted") { 
-      Alert.alert("Permission", "Please allow photo access."); 
-      return; 
-    }
+    if (perm.status !== "granted") { Alert.alert("Permission", "Please allow photo access."); return; }
     const res = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true });
     if (!res.canceled) setUser(p => ({ ...p, photoUri: res.assets[0].uri }));
   }
 
   async function onSaveChanges() {
-    await setLocalProfile(session.id, {
+    await setLocalProfile({
       username: user.username,
       email: user.email,
       photoUri: user.photoUri ?? null,
@@ -103,6 +92,7 @@ export default function SettingsScreen() {
   async function onResetPassword() {
     const ok = await confirm("Reset Password", `Send a reset link to ${user.email}?`);
     if (!ok) return;
+    // TODO: replace with real backend call later.
     Alert.alert("Email sent", "Check your inbox for the reset link.");
   }
 
@@ -142,7 +132,7 @@ export default function SettingsScreen() {
 
   if (!hydrated) return null;
 
-  return (
+    return (
     <ScrollView
       style={s.page}
       contentContainerStyle={s.content}
@@ -193,71 +183,80 @@ export default function SettingsScreen() {
             onPress={()=>onPickTeam("Cats")}
             style={[s.segmentHalf, user.team==="Cats"?s.segmentActive:s.segmentInactive]}
           >
-            <Text style={[s.segmentTxt, user.team==="Cats"&&s.segmentTxtActive]}>🐱 Cats</Text>
+            <Text style={[s.segmentTxt, user.team==="Cats"&&s.segmentTxtActive]}>Cats</Text>
           </Pressable>
           <Pressable
             onPress={()=>onPickTeam("Dogs")}
             style={[s.segmentHalf, user.team==="Dogs"?s.segmentActive:s.segmentInactive]}
           >
-            <Text style={[s.segmentTxt, user.team==="Dogs"&&s.segmentTxtActive]}>🐶 Dogs</Text>
+            <Text style={[s.segmentTxt, user.team==="Dogs"&&s.segmentTxtActive]}>Dogs</Text>
           </Pressable>
         </View>
       </View>
 
+
+
       {/* Actions */}
+      {/* WRAP ACTION BUTTONS IN A VIEW TO FIX SCROLLVIEW CLOSING */}
+      {/* Admin Settings Button */}
       <View style={{ marginTop: 10 }}>
         {user?.admin && (
-          <Pressable onPress={() => router.push("/admin-settings")} style={s.adminBtn}>
-            <Text style={s.primaryTxt}>⚙️ ADMIN SETTINGS</Text>
+          <Pressable onPress={() => router.push("/admin-settings")} style={s.dangerBtn}>
+            <Text style={s.primaryTxt}>ADMIN SETTINGS</Text>
           </Pressable>
         )}
           
         <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
-          <Text style={s.primaryTxt}>💾 SAVE CHANGES</Text>
+          <Text style={s.primaryTxt}>SAVE CHANGES</Text>
         </Pressable>
 
         <Pressable onPress={onResetPassword} style={s.secondaryBtn}>
-          <Text style={s.secondaryTxt}>🔑 RESET PASSWORD</Text>
+          <Text style={s.secondaryTxt}>RESET PASSWORD</Text>
         </Pressable>
 
         <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
-          <Text style={s.dangerTxt}>🗑️ DELETE ACCOUNT</Text>
+          <Text style={s.dangerTxt}>DELETE ACCOUNT</Text>
         </Pressable>
 
         <Pressable onPress={onSignOut} style={s.signOutButton}>
-          <Text style={s.signOutTxt}>👋 SIGN OUT</Text>
+          <Text style={s.signOutTxt}>SIGN OUT</Text>
         </Pressable>
       </View>
+      {/* END OF FIXED WRAPPER VIEW */}
 
     </ScrollView>
   );
 }
 
+/* your palette/look */
 const colors = {
   bg:"#E9D8C8", card:"#F3E7DA", dark:"#3B261A", mid:"#9B6A44",
-  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A", admin:"#6B4C9A"
+  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
 };
-
 const s = StyleSheet.create({
   page:{ flex:1, backgroundColor:colors.bg },
   content:{ padding:16, paddingBottom:28 },
   heading:{ fontSize:28, fontWeight:"900", color:colors.dark, marginBottom:14 },
+
   photoWrap:{ backgroundColor:colors.card, borderRadius:18, paddingVertical:22, paddingHorizontal:16, alignItems:"center", marginBottom:16 },
   photoCircle:{ width:110, height:110, borderRadius:55, backgroundColor:colors.cream, alignItems:"center", justifyContent:"center", marginBottom:14, overflow:"hidden" },
   photoText:{ color:colors.dark, opacity:0.7, fontWeight:"700" },
   photoImg:{ width:110, height:110 },
+
   uploadBtn:{ backgroundColor:colors.mid, paddingVertical:10, paddingHorizontal:18, borderRadius:22 },
   uploadTxt:{ color:colors.white, fontWeight:"900", letterSpacing:0.5 },
+
   fieldBlock:{ marginBottom:14 },
   label:{ color:colors.dark, fontWeight:"800", marginBottom:8 },
   input:{ backgroundColor:colors.white, borderRadius:12, paddingVertical:10, paddingHorizontal:12, borderWidth:1, borderColor:"rgba(59,38,26,0.12)" },
+
   segmentWrap:{ flexDirection:"row", backgroundColor:colors.cream, borderRadius:10, overflow:"hidden" },
   segmentHalf:{ flex:1, alignItems:"center", justifyContent:"center", paddingVertical:12 },
   segmentActive:{ backgroundColor:colors.dark },
   segmentInactive:{ backgroundColor:"transparent" },
-  segmentTxt:{ fontWeight:"900", color:colors.dark, fontSize: 15 },
+  segmentTxt:{ fontWeight:"900", color:colors.dark },
   segmentTxtActive:{ color:"#fff" },
-  adminBtn:{ backgroundColor:colors.admin, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:6 },
+
   primaryBtn:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:6 },
   primaryTxt:{ color:"#fff", fontWeight:"900" },
   secondaryBtn:{ backgroundColor:colors.mid, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
@@ -266,4 +265,5 @@ const s = StyleSheet.create({
   dangerTxt:{ color:"#fff", fontWeight:"900" },
   signOutButton:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
   signOutTxt: { color:"#fff", fontWeight:"900" }
+
 });

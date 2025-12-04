@@ -3,7 +3,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from "react";
 import {
   Alert,
-  Dimensions,
   FlatList,
   Image,
   Platform,
@@ -15,16 +14,16 @@ import {
 import Header from "../components/Header";
 import { useSession } from "../context/userContext";
 
-const { width } = Dimensions.get("window");
 
 export default function Feed() {
   const router = useRouter();
   const { session } = useSession();
   const [posts, setPosts] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
 
+  /** Cross-platform confirm (Alert on native, window.confirm on web) */
   async function confirm(title: string, message: string): Promise<boolean> {
     if (Platform.OS === "web") {
+      
       return window.confirm(`${title}\n\n${message}`);
     }
     return new Promise((resolve) => {
@@ -37,27 +36,16 @@ export default function Feed() {
 
   // this grabs the team posts based on user's team (cat or dog)
   const fetchTeamPosts = async () => {
-  try {
-    console.log(`Fetching posts for team: ${session.team}`);
-    const response = await fetch(
-      `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/${session.team}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Status ${response.status}`);
+    try {
+      const response = await fetch(
+        `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/${session.team}`
+      );
+      const data = await response.json();
+      setPosts(data);
+    } catch (err) {
+      console.error("Error fetching team posts:", err);
     }
-
-    const data = await response.json();
-    console.log(`Received ${data.length} posts for ${session.team} team`);
-
-    // ✅ just trust the backend here
-    setPosts(data);
-  } catch (err) {
-    console.error("Error fetching team posts:", err);
-    Alert.alert("Error", "Failed to load posts");
-  }
-};
-
+  };
   
   // we know which posts to render (only cat or only dog) from user's team once session is ready to give that info
   // using useFocusEffect and useCallBack instead of useEffect, so when user uploads, automatically shows new post in feed page
@@ -72,51 +60,24 @@ export default function Feed() {
   // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
   const renderPost = ({ item }) => (
     <View style={styles.postCard}>
-      {/* Header with username and team badge */}
-      <View style={styles.postHeader}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {item.username ? item.username[0].toUpperCase() : "?"}
-            </Text>
-          </View>
-          <Text style={styles.postUsername}>{item.username || "Unknown User"}</Text>
-        </View>
-        <View style={[styles.teamBadge, session.team === "cat" ? styles.catBadge : styles.dogBadge]}>
-          <Text style={styles.teamBadgeText}>{session.team === "cat" ? "🐱 CATS" : "🐶 DOGS"}</Text>
-        </View>
-      </View>
-
-      {/* Image */}
-      {item.imageUrl && (
-        <View style={styles.imageContainer}>
-          <Image 
-            source={{ uri: item.imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        </View>
-      )}
-
-      {/* Description */}
+      <Text style={styles.postUsername}>{item.username || "Unknown User"}</Text>
+      <Image 
+        source={{ uri: item.imageUrl }}
+        style={styles.image}
+      />
       <Text style={styles.postDescription}>{item.description}</Text>
-
-      {/* Like section */}
-      <View style={styles.postFooter}>
-        <TouchableOpacity 
-          style={styles.likeButton} 
-          onPress={() => updatePostLikes(item.id)}
-          activeOpacity={0.7}
-        > 
-          <Text style={styles.likeEmoji}>❤️</Text>
-          <Text style={styles.likesCount}>{item.likes}</Text>
-        </TouchableOpacity>
+      <View style={styles.postLikesContainer}> 
+      <Text style={styles.postLikes}> {item.likes} </Text>
+      <TouchableOpacity style={styles.postLikeButton} onPress={() => updatePostLikes(item.id)}> 
+        <Text> 👍 </Text>
+      </TouchableOpacity>
       </View>
     </View>
   );
 
   const updatePostLikes = async (postId) => {
     try {
+
       // update for user first, so clean UI
       setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, likes: p.likes + 1 } : p
@@ -131,23 +92,19 @@ export default function Feed() {
   
       if (!response.ok) {
         console.log("Failed to like post");
-        // Revert on failure
-        setPosts(prev => prev.map(p =>
-          p.id === postId ? { ...p, likes: p.likes - 1 } : p
-        ));
       }
+  
     } catch (error) {
       console.log("Error updating likes: " + error);
-      setPosts(prev => prev.map(p =>
-        p.id === postId ? { ...p, likes: p.likes - 1 } : p
-      ));
     }
+    
   };
   
   return (
     <View style={styles.page}>
+      
       <View style={styles.header}>
-        <Header/>
+      <Header/>
       </View>
 
       {/* below, keyExtractor knows how to uniquely identify a post by its id from db, references in renderPost */}
@@ -163,22 +120,16 @@ export default function Feed() {
       }
       
       />
+
     </View>
   );
+
 }
 
 const colors = {
-  bg: "#F8F4F0",
-  cardBg: "#FFFFFF",
-  dark: "#3B261A",
-  mid: "#9B6A44",
-  cream: "#EDE1D5",
-  catAccent: "#FF9989",
-  dogAccent: "#78AAFF",
-  border: "rgba(59, 38, 26, 0.1)",
-  shadow: "rgba(0, 0, 0, 0.08)",
+  bg:"#E9D8C8", card:"#F3E7DA", dark:"#3B261A", mid:"#9B6A44",
+  cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
 };
-
 const styles = StyleSheet.create({
   page: {  // Add this!
     flex: 1,
@@ -186,7 +137,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: "#C4A484",
   },
   header: {
     marginTop: 30
@@ -224,14 +175,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 14,
   },
-  postFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  likeButton: {
+  postLikesContainer: {
     flexDirection: "row",
   },
   postLikes: {
