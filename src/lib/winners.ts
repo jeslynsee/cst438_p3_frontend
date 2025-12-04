@@ -12,6 +12,7 @@ export type WeeklyWinner = {
 };
 
 const KEY = "weeklyWinners";
+const LAST_CHECK_KEY = "lastWinnerCheck";
 
 function startOfWeek(d = new Date()) {
   const x = new Date(d);
@@ -59,30 +60,56 @@ async function fetchAllPostsFromBackend() {
   }
 }
 
-/** Close current week and append a winner if not already saved. */
+/** 
+ * Check if we need to close yesterday and save a winner.
+ * This runs every time the app opens/refreshes, but only saves once per day.
+ */
 export async function closeWeekIfNeeded() {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  
+  // Get the last day we checked
+  const lastCheck = await AsyncStorage.getItem(LAST_CHECK_KEY);
+  
+  // If we already checked today, don't do anything
+  if (lastCheck === today) {
+    return;
+  }
+  
+  // Calculate yesterday's date
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  
+  // Check if we already have a winner for yesterday
   const winners = await getWinners();
-  const { start } = currentWeekWindow();
-  const today = new Date().toISOString().slice(0, 10);
-
-  // Check if we already have a winner for today
-  const existsToday = winners.some(w => {
+  const hasYesterdayWinner = winners.some(w => {
     const winnerDate = new Date(w.weekStart).toISOString().slice(0, 10);
-    return winnerDate === today;
+    return winnerDate === yesterdayStr;
   });
   
-  if (existsToday) return;
-
+  // If we already saved yesterday's winner, just update last check and return
+  if (hasYesterdayWinner) {
+    await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+    return;
+  }
+  
+  // We need to save yesterday's winner!
+  console.log("Closing yesterday and saving winner...");
+  
   // Fetch all posts from backend
   const backendPosts = await fetchAllPostsFromBackend();
-  if (backendPosts.length === 0) return;
+  if (backendPosts.length === 0) {
+    await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+    return;
+  }
 
   // Find the post with most likes from ALL posts
   const champ = [...backendPosts].sort((a, b) => b.likes - a.likes)[0];
 
   const entry: WeeklyWinner = {
-    weekStart: new Date().toISOString(),
-    weekEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    weekStart: yesterday.toISOString(), // Use yesterday's date
+    weekEnd: now.toISOString(),
     postId: champ.id.toString(),
     team: champ.team === "cat" ? "cats" : "dogs",
     title: champ.description || "Untitled",
@@ -92,8 +119,11 @@ export async function closeWeekIfNeeded() {
   };
   
   await saveWinners([entry, ...winners]);
+  await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+  console.log("Winner saved for", yesterdayStr);
 }
 
 export async function clearWinners() {
   await AsyncStorage.removeItem(KEY);
+  await AsyncStorage.removeItem(LAST_CHECK_KEY);
 }
