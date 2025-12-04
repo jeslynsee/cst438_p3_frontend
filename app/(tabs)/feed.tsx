@@ -56,12 +56,6 @@ export default function Feed() {
     }, [session?.team])
   );
   
-
-
-  //TODO: Need to grab usernames of each post's user
-  // grab item.userId, then call API for backend route of getUser, which takes in id
-  // once we have user, just grab user's username and display that in flatlist card
-  
   // render each item in FlatList
   // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
   const renderPost = ({ item }) => (
@@ -106,10 +100,6 @@ export default function Feed() {
     
   };
   
-
-  
-
-
   return (
     <View style={styles.page}>
       
@@ -141,6 +131,10 @@ const colors = {
   cream:"#EDE1D5", white:"#FFFFFF", red:"#C84B3A"
 };
 const styles = StyleSheet.create({
+  page: {  // Add this!
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   container: {
     flex: 1,
     backgroundColor: "#C4A484",
