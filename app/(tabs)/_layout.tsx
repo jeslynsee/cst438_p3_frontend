@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { useSession } from "../context/userContext";
@@ -25,13 +26,22 @@ export default function TabLayout() {
     return <Redirect href="/" />;
   }
 
+  // TODO: change tab bar icons
   return (
     <Tabs screenOptions={{ headerShown: false }}>
-      <Tabs.Screen name="feed" options={{ title: 'Home' }} />
-      <Tabs.Screen name="feed-kass" options={{ title: "Home (Kass)" }} />
-      <Tabs.Screen name="top-posts" options={{ title: "Top Posts" }} />
-      <Tabs.Screen name="create-post" options={{ title: "Post" }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen name="feed" options={{ title: 'Home', tabBarIcon: ({ color, focused }) => (
+          <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+        ), }} />
+      <Tabs.Screen name="feed-kass" options={{ title: "Home (Kass)" }}/>
+      <Tabs.Screen name="top-posts" options={{ title: "Top Posts", tabBarIcon: ({ color, focused}) => (
+        <Ionicons name={focused ? 'arrow-up' : 'arrow-up-outline'} size={24} color={color}/>
+      ), }} />
+      <Tabs.Screen name="create-post" options={{ title: "Post", tabBarIcon: ({ color, focused}) => (
+        <Ionicons name={focused ? 'images' : 'images-outline'} size={24} color={color}/>
+      ), }} /> 
+      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color, focused}) => (
+        <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color}/>
+      ), }} />
       <Tabs.Screen name="winners" options={{ title: "Winners", href: null, }} />
     </Tabs>
   );

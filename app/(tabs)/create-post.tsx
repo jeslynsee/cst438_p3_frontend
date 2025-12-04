@@ -21,6 +21,8 @@ import { getRandomImage } from "../../src/lib/imageAPI";
 import { getLocalProfile } from "../../src/lib/profile";
 import { getTeam, type Team } from "../../src/lib/team";
 
+import { supabase } from "../../src/lib/supabase";
+
 export default function CreatePost() {
   const router = useRouter();
   const { session } = useSession();
@@ -41,6 +43,47 @@ export default function CreatePost() {
   useEffect(() => { hydrateTeam(); hydrateAuthor(); }, []);
   useFocusEffect(useCallback(() => { hydrateTeam(); hydrateAuthor(); }, []));
 
+  async function uploadImageToSupabase(uri) {
+    try {
+      // convert image URI to Binary Large Object (blob) for react native
+      const response = await fetch(uri);
+      const binaryData = await response.blob(); // grabbing file from user's device (response) and turning it into binary data 
+      
+      // creating unique file name, avoid problems with duplicates
+      const fileExt = uri.split('.').pop() || 'jpg';
+      const fileName = `${session.id}-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+  
+      // upload to supabase storage
+      const { data, error } = await supabase.storage
+        .from('post-images')
+        .upload(filePath, binaryData, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+  
+      if (error) {
+        console.error("Upload error:", error);
+        Alert.alert("Upload failed", error.message);
+        return null;
+      }
+  
+      // get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(filePath);
+  
+      return publicUrl; // gives us the URL we need, so when we call to backend API for creating a post, we can 
+      // give this string as the imageURL
+
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      Alert.alert("Error", "Failed to upload image");
+      return null;
+    }
+  }
+
+  // may need to alter below to get image info to send to backend
   async function pickImage() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (perm.status !== "granted") { Alert.alert("Permission needed", "Allow photo access."); return; }
@@ -49,7 +92,20 @@ export default function CreatePost() {
       allowsEditing: true,
       quality: 0.9,
     });
-    if (!result.canceled) setImageURL(result.assets[0].uri);
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      
+      // attempting upload to supabase storage
+      Alert.alert("Uploading to Supabase Storage...");
+      const uploadedUrl = await uploadImageToSupabase(uri);
+      
+      if (uploadedUrl) {
+        setImageURL(uploadedUrl);
+        Alert.alert("Success! Image uploaded");
+      }
+    }
+
   }
 
   async function autoImage(userTeam) {

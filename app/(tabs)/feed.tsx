@@ -67,16 +67,6 @@ export default function Feed() {
       fetchTeamPosts();
     }, [session?.team])
   );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchTeamPosts();
-    setRefreshing(false);
-  };
-
-  //TODO: Need to grab usernames of each post's user
-  // grab item.userId, then call API for backend route of getUser, which takes in id
-  // once we have user, just grab user's username and display that in flatlist card
   
   // render each item in FlatList
   // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
@@ -153,7 +143,7 @@ export default function Feed() {
       ));
     }
   };
-
+  
   return (
     <View style={styles.page}>
       <View style={styles.header}>
@@ -161,27 +151,17 @@ export default function Feed() {
       </View>
 
       {/* below, keyExtractor knows how to uniquely identify a post by its id from db, references in renderPost */}
-      <FlatList 
-        data={posts} 
-        renderItem={renderPost} 
-        keyExtractor={(item) => item.id?.toString()}
-        contentContainerStyle={styles.listContent}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>
-              {session.team === "cat" ? "🐱" : "🐶"}
-            </Text>
-            <Text style={styles.emptyText}>
-              No posts yet in the {session.team === "cat" ? "Cats" : "Dogs"} feed
-            </Text>
-            <Text style={styles.emptySubtext}>
-              Be the first to post!
-            </Text>
-          </View>
-        }
+      <FlatList data={posts} 
+      renderItem={renderPost} 
+      keyExtractor={(item) => item.id?.toString()}
+      ListEmptyComponent={
+        <View style={{ paddingVertical: 20, alignItems: "center" }}>
+          <Text style={{ fontSize: 16, color: "#333" }}>
+            No posts yet
+          </Text>
+        </View>
+      }
+      
       />
     </View>
   );
@@ -200,104 +180,49 @@ const colors = {
 };
 
 const styles = StyleSheet.create({
-  page: {
+  page: {  // Add this!
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  container: {
     flex: 1,
     backgroundColor: colors.bg,
   },
   header: {
-    backgroundColor: colors.cardBg,
-    paddingTop: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginTop: 30
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 32,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 35,
+    paddingTop: 20,
+    paddingBottom: 40,
+    alignItems: "center",
   },
   postCard: {
-    backgroundColor: colors.cardBg,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  postHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    borderColor: "gray",
+    borderWidth: 0.5,
+    padding: 15,
+    marginVertical: 8,
     alignItems: "center",
-    marginBottom: 12,
-  },
-  userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.cream,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: colors.dark,
+    width: "90%", // using percentage instead of fixed width, so looks good on both web and mobile
+    maxWidth: 600, // helps posts not look zoomed in on mobile
+    alignSelf: "center", // centering card itself
   },
   postUsername: {
-    fontWeight: "800",
-    fontSize: 16,
-    color: colors.dark,
-  },
-  teamBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  catBadge: {
-    backgroundColor: "rgba(255, 153, 137, 0.2)",
-  },
-  dogBadge: {
-    backgroundColor: "rgba(120, 170, 255, 0.2)",
-  },
-  teamBadgeText: {
-    fontSize: 12,
-    fontWeight: "900",
-    color: colors.dark,
-    letterSpacing: 0.5,
-  },
-  imageContainer: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-    borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 12,
-    backgroundColor: colors.cream,
+    fontWeight: "bold",
+    fontSize: 20,
+    alignSelf: "flex-start", // helps align username to left/start
+    width: "100%", // helps username take full width to sit nicely on top left corner of postCard
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: 300,
+    height: 200
   },
   postDescription: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.dark,
-    marginBottom: 12,
+    padding: 10,
+    fontSize: 14,
   },
   postFooter: {
     flexDirection: "row",
@@ -308,40 +233,14 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.cream,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    gap: 8,
   },
-  likeEmoji: {
-    fontSize: 20,
+  postLikes: {
+    padding: 10,
   },
-  likesCount: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: colors.dark,
-  },
-  emptyContainer: {
-    paddingVertical: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.dark,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.mid,
-    textAlign: "center",
-  },
+  postLikeButton: {
+    // borderRadius: 5,
+    marginTop: 10,
+    borderColor: "black",
+    borderRadius: 10
+  }
 });

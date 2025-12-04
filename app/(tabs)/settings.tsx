@@ -1,4 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// Settings with real actions:
+// - Upload profile photo
+// - Save changes locally
+// - Reset Password (confirm -> "email sent")
+// - Delete Account (confirm -> clear local data -> redirect to /sign-up)
+
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -12,8 +17,7 @@ import {
 } from "react-native";
 import { useSession } from "../context/userContext";
 
-import { clearAllPosts } from "../../src/lib/postsStore";
-import { clearLocalProfile, getLocalProfile, setLocalProfile } from "../../src/lib/profile";
+import { getLocalProfile, setLocalProfile } from "../../src/lib/profile";
 import { getTeam, setTeam, type Team } from "../../src/lib/team";
 
 async function confirm(title: string, message: string): Promise<boolean> {
@@ -109,14 +113,27 @@ export default function SettingsScreen() {
     );
     if (!ok) return;
 
-    await Promise.all([
-      clearLocalProfile(session.id),
-      AsyncStorage.removeItem("userTeam"),
-      clearAllPosts(),
-    ]);
+    try {
+      const response = await fetch(`https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/${session.id}`, {
+        method: "DELETE"
+      });
 
-    setUser({ username: "", email: "", team: "Cats", photoUri: null, admin: false });
-    router.replace("/sign-up");
+      if (response.status === 204) {
+        Alert.alert("Successfully deleted account!");
+
+        // clear session since we only do that when user hits sign out button, but in this case, deleting account 
+        await signOut();
+        
+        // Go back to login page, so user has option to login to different account or sign up
+        router.replace("/");
+      } else {
+        Alert.alert("Something went wrong");
+      }
+
+    } catch(error) {
+      console.log("Error deleting account: " + error);
+    }
+
   }
 
   const onSignOut = async () => {
