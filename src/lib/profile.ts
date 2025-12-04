@@ -1,13 +1,12 @@
-// Central helpers for the local "profile" we’re mocking right now.
+// Central helpers for the local "profile" we're mocking right now.
 // Later connect to backend, replace these with real API calls.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const PROFILE = {
-  username: "profile.username",
-  email: "profile.email",
-  photo: "profile.photoUri",
-};
+// Helper to get user-specific keys
+function getUserKey(userId: string | number, field: string): string {
+  return `profile.${userId}.${field}`;
+}
 
 export type LocalProfile = {
   username: string;
@@ -15,31 +14,31 @@ export type LocalProfile = {
   photoUri?: string | null;
 };
 
-export async function getLocalProfile(): Promise<LocalProfile> {
+export async function getLocalProfile(userId: string | number): Promise<LocalProfile> {
   const [u, e, p] = await Promise.all([
-    AsyncStorage.getItem(PROFILE.username),
-    AsyncStorage.getItem(PROFILE.email),
-    AsyncStorage.getItem(PROFILE.photo),
+    AsyncStorage.getItem(getUserKey(userId, "username")),
+    AsyncStorage.getItem(getUserKey(userId, "email")),
+    AsyncStorage.getItem(getUserKey(userId, "photo")),
   ]);
   return {
-    username: u ?? "kassandra",
-    email: e ?? "kass@example.com",
+    username: u ?? "user",
+    email: e ?? "user@example.com",
     photoUri: p || null,
   };
 }
 
-export async function setLocalProfile(p: LocalProfile) {
+export async function setLocalProfile(userId: string | number, p: LocalProfile) {
   await AsyncStorage.multiSet([
-    [PROFILE.username, p.username],
-    [PROFILE.email, p.email],
-    [PROFILE.photo, p.photoUri ?? ""],
+    [getUserKey(userId, "username"), p.username],
+    [getUserKey(userId, "email"), p.email],
+    [getUserKey(userId, "photo"), p.photoUri ?? ""],
   ]);
 }
 
-export async function clearLocalProfile() {
+export async function clearLocalProfile(userId: string | number) {
   await Promise.all([
-    AsyncStorage.removeItem(PROFILE.username),
-    AsyncStorage.removeItem(PROFILE.email),
-    AsyncStorage.removeItem(PROFILE.photo),
+    AsyncStorage.removeItem(getUserKey(userId, "username")),
+    AsyncStorage.removeItem(getUserKey(userId, "email")),
+    AsyncStorage.removeItem(getUserKey(userId, "photo")),
   ]);
 }

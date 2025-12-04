@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Post } from "./postsStore";
 
 export type WeeklyWinner = {
   weekStart: string;
@@ -13,6 +12,7 @@ export type WeeklyWinner = {
 };
 
 const KEY = "weeklyWinners";
+const LAST_CHECK_KEY = "lastWinnerCheck";
 
 function startOfWeek(d = new Date()) {
   const x = new Date(d);
@@ -21,6 +21,7 @@ function startOfWeek(d = new Date()) {
   x.setDate(x.getDate() - day);
   return x;
 }
+
 function endOfWeek(d = new Date()) {
   const s = startOfWeek(d);
   const e = new Date(s);
@@ -41,35 +42,88 @@ async function saveWinners(list: WeeklyWinner[]) {
   await AsyncStorage.setItem(KEY, JSON.stringify(list));
 }
 
-/** Close current week and append a winner once-per-week if not already saved. */
-export async function closeWeekIfNeeded(posts: Post[]) {
+// NEW: Fetch posts from backend and determine winner
+async function fetchAllPostsFromBackend() {
+  try {
+    const [catResponse, dogResponse] = await Promise.all([
+      fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/cat"),
+      fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/dog")
+    ]);
+    
+    const catData = await catResponse.json();
+    const dogData = await dogResponse.json();
+    
+    return [...catData, ...dogData];
+  } catch (error) {
+    console.error("Error fetching posts from backend:", error);
+    return [];
+  }
+}
+
+/** 
+ * Check if we need to close yesterday and save a winner.
+ * This runs every time the app opens/refreshes, but only saves once per day.
+ */
+export async function closeWeekIfNeeded() {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  
+  // Get the last day we checked
+  const lastCheck = await AsyncStorage.getItem(LAST_CHECK_KEY);
+  
+  // If we already checked today, don't do anything
+  if (lastCheck === today) {
+    return;
+  }
+  
+  // Calculate yesterday's date
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  
+  // Check if we already have a winner for yesterday
   const winners = await getWinners();
-  const { start, end } = currentWeekWindow();
-
-  const exists = winners.some(w => new Date(w.weekStart).getTime() === start.getTime());
-  if (exists) return;
-
-  const inWindow = posts.filter(p => {
-    const t = new Date(p.createdAt).getTime();
-    return t >= start.getTime() && t < end.getTime();
+  const hasYesterdayWinner = winners.some(w => {
+    const winnerDate = new Date(w.weekStart).toISOString().slice(0, 10);
+    return winnerDate === yesterdayStr;
   });
-  if (inWindow.length === 0) return;
+  
+  // If we already saved yesterday's winner, just update last check and return
+  if (hasYesterdayWinner) {
+    await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+    return;
+  }
+  
+  // We need to save yesterday's winner!
+  console.log("Closing yesterday and saving winner...");
+  
+  // Fetch all posts from backend
+  const backendPosts = await fetchAllPostsFromBackend();
+  if (backendPosts.length === 0) {
+    await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+    return;
+  }
 
-  const champ = [...inWindow].sort((a,b) => b.likes - a.likes)[0];
+  // Find the post with most likes from ALL posts
+  const champ = [...backendPosts].sort((a, b) => b.likes - a.likes)[0];
 
   const entry: WeeklyWinner = {
-    weekStart: start.toISOString(),
-    weekEnd: end.toISOString(),
-    postId: champ.id,
-    team: champ.team,
-    title: champ.title,
-    author: champ.author,
+    weekStart: yesterday.toISOString(), // Use yesterday's date
+    weekEnd: now.toISOString(),
+    postId: champ.id.toString(),
+    team: champ.team === "cat" ? "cats" : "dogs",
+    title: champ.description || "Untitled",
+    author: champ.username || "Unknown",
     likesAtClose: champ.likes,
-    imageURL: (champ as any).imageURL ?? null,
+    imageURL: champ.imageUrl || null,
   };
+  
   await saveWinners([entry, ...winners]);
+  await AsyncStorage.setItem(LAST_CHECK_KEY, today);
+  console.log("Winner saved for", yesterdayStr);
 }
 
 export async function clearWinners() {
   await AsyncStorage.removeItem(KEY);
+  await AsyncStorage.removeItem(LAST_CHECK_KEY);
 }

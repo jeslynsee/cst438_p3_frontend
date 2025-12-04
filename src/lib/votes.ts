@@ -2,27 +2,46 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const VOTE_KEY = "dailyVote"; // { date: "YYYY-MM-DD", postId: "..." }
 
-function todayKey() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+type VoteStatus = {
+  hasVotedToday: boolean;
+  postId: string | null;
+};
+
+// Build a unique key for each user
+function voteKey(userId: string) {
+  return `dailyVote:${userId}`;
 }
 
-export async function getVoteStatus() {
-  const raw = await AsyncStorage.getItem(VOTE_KEY);
-  const data = raw ? JSON.parse(raw) as { date: string; postId: string } : null;
-  const today = todayKey();
-  return {
-    hasVotedToday: !!data && data.date === today,
-    postId: data?.postId ?? null,
-    today,
-  };
+export async function getVoteStatus(userId: string): Promise<VoteStatus> {
+  try {
+    const raw = await AsyncStorage.getItem(voteKey(userId));
+    if (!raw) {
+      return { hasVotedToday: false, postId: null };
+    }
+
+    const saved = JSON.parse(raw) as { date: string; postId: string };
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (saved.date === today) {
+      return { hasVotedToday: true, postId: saved.postId };
+    }
+
+    // Old vote from a previous day → treat as no vote today
+    return { hasVotedToday: false, postId: null };
+  } catch (err) {
+    console.log("Error reading vote status", err);
+    return { hasVotedToday: false, postId: null };
+  }
 }
 
-export async function recordVote(postId: string) {
-  await AsyncStorage.setItem(VOTE_KEY, JSON.stringify({ date: todayKey(), postId }));
+export async function recordVote(userId: string, postId: string): Promise<void> {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const payload = JSON.stringify({ date: today, postId });
+    await AsyncStorage.setItem(voteKey(userId), payload);
+  } catch (err) {
+    console.log("Error saving vote", err);
+  }
 }
 
 export async function clearVoteHistoryForAdmin() {

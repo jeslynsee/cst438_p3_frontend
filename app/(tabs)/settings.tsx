@@ -267,4 +267,3 @@ const s = StyleSheet.create({
   signOutTxt: { color:"#fff", fontWeight:"900" }
 
 });
-
