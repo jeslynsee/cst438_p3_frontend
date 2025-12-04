@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Post } from "./postsStore";
 
 export type WeeklyWinner = {
   weekStart: string;
@@ -21,6 +20,7 @@ function startOfWeek(d = new Date()) {
   x.setDate(x.getDate() - day);
   return x;
 }
+
 function endOfWeek(d = new Date()) {
   const s = startOfWeek(d);
   const e = new Date(s);
@@ -41,32 +41,56 @@ async function saveWinners(list: WeeklyWinner[]) {
   await AsyncStorage.setItem(KEY, JSON.stringify(list));
 }
 
-/** Close current week and append a winner once-per-week if not already saved. */
-export async function closeWeekIfNeeded(posts: Post[]) {
+// NEW: Fetch posts from backend and determine winner
+async function fetchAllPostsFromBackend() {
+  try {
+    const [catResponse, dogResponse] = await Promise.all([
+      fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/cat"),
+      fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/dog")
+    ]);
+    
+    const catData = await catResponse.json();
+    const dogData = await dogResponse.json();
+    
+    return [...catData, ...dogData];
+  } catch (error) {
+    console.error("Error fetching posts from backend:", error);
+    return [];
+  }
+}
+
+/** Close current week and append a winner if not already saved. */
+export async function closeWeekIfNeeded() {
   const winners = await getWinners();
-  const { start, end } = currentWeekWindow();
+  const { start } = currentWeekWindow();
+  const today = new Date().toISOString().slice(0, 10);
 
-  const exists = winners.some(w => new Date(w.weekStart).getTime() === start.getTime());
-  if (exists) return;
-
-  const inWindow = posts.filter(p => {
-    const t = new Date(p.createdAt).getTime();
-    return t >= start.getTime() && t < end.getTime();
+  // Check if we already have a winner for today
+  const existsToday = winners.some(w => {
+    const winnerDate = new Date(w.weekStart).toISOString().slice(0, 10);
+    return winnerDate === today;
   });
-  if (inWindow.length === 0) return;
+  
+  if (existsToday) return;
 
-  const champ = [...inWindow].sort((a,b) => b.likes - a.likes)[0];
+  // Fetch all posts from backend
+  const backendPosts = await fetchAllPostsFromBackend();
+  if (backendPosts.length === 0) return;
+
+  // Find the post with most likes from ALL posts
+  const champ = [...backendPosts].sort((a, b) => b.likes - a.likes)[0];
 
   const entry: WeeklyWinner = {
-    weekStart: start.toISOString(),
-    weekEnd: end.toISOString(),
-    postId: champ.id,
-    team: champ.team,
-    title: champ.title,
-    author: champ.author,
+    weekStart: new Date().toISOString(),
+    weekEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    postId: champ.id.toString(),
+    team: champ.team === "cat" ? "cats" : "dogs",
+    title: champ.description || "Untitled",
+    author: champ.username || "Unknown",
     likesAtClose: champ.likes,
-    imageURL: (champ as any).imageURL ?? null,
+    imageURL: champ.imageUrl || null,
   };
+  
   await saveWinners([entry, ...winners]);
 }
 

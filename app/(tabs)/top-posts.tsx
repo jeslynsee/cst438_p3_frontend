@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { getVoteStatus, recordVote } from "../../src/lib/votes";
+import { closeWeekIfNeeded } from "../../src/lib/winners"; // ADDED
 import PostCard from "../components/PostCard";
 import { useSession } from "../context/userContext";
 
@@ -48,6 +49,9 @@ export default function TopPostsScreen() {
 
   async function fetchTopPosts() {
     try {
+      // ADDED: Check and close week if needed
+      await closeWeekIfNeeded();
+
       // Fetch cat top post
       const catResponse = await fetch(
         "https://catsvsdogs-e830690a69ba.herokuapp.com/posts/team/cat"
@@ -95,10 +99,10 @@ export default function TopPostsScreen() {
 
       // Check vote status for this user
       if (session?.id) {
-      const v = await getVoteStatus(session.id);
-      setVotedId(v.hasVotedToday ? v.postId : null);
+        const v = await getVoteStatus(session.id);
+        setVotedId(v.hasVotedToday ? v.postId : null);
       } else {
-      setVotedId(null);
+        setVotedId(null);
       }
     } catch (error) {
       console.error("Error fetching top posts:", error);
@@ -109,33 +113,32 @@ export default function TopPostsScreen() {
   useFocusEffect(useCallback(() => { fetchTopPosts(); }, []));
 
   async function vote(post: Post) {
-  if (!session?.id) {
-    Alert.alert("Not signed in", "Please sign in again to vote.");
-    return;
-  }
-
-  const status = await getVoteStatus(session.id);
-  if (status.hasVotedToday) {
-    Alert.alert("You've already voted today", "Come back tomorrow!");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/${post.id}/like`,
-      { method: "POST" }
-    );
-
-    if (response.ok) {
-      await recordVote(session.id, post.id);
-      await fetchTopPosts(); // Refresh to show updated likes + “VOTED” state
+    if (!session?.id) {
+      Alert.alert("Not signed in", "Please sign in again to vote.");
+      return;
     }
-  } catch (error) {
-    console.error("Error voting:", error);
-    Alert.alert("Error", "Failed to submit vote");
-  }
-}
 
+    const status = await getVoteStatus(session.id);
+    if (status.hasVotedToday) {
+      Alert.alert("You've already voted today", "Come back tomorrow!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://catsvsdogs-e830690a69ba.herokuapp.com/posts/${post.id}/like`,
+        { method: "POST" }
+      );
+
+      if (response.ok) {
+        await recordVote(session.id, post.id);
+        await fetchTopPosts(); // Refresh to show updated likes + "VOTED" state
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+      Alert.alert("Error", "Failed to submit vote");
+    }
+  }
 
   return (
     <View style={s.page}>
