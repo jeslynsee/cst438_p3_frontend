@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#C4A484",
   },
   header: {
-    marginTop: 20
+    marginTop: 30
   },
   scrollContent: {
     flexGrow: 1,
