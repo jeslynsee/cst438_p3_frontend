@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1763580917964" clover="3.2.0">
-  <project timestamp="1763580917964" name="All files">
-    <metrics statements="82" coveredstatements="77" conditionals="50" coveredconditionals="40" methods="34" coveredmethods="26" elements="166" coveredelements="143" complexity="0" loc="82" ncloc="82" packages="1" files="7" classes="7"/>
+<coverage generated="1764897193506" clover="3.2.0">
+  <project timestamp="1764897193506" name="All files">
+    <metrics statements="105" coveredstatements="91" conditionals="56" coveredconditionals="41" methods="35" coveredmethods="28" elements="196" coveredelements="160" complexity="0" loc="105" ncloc="105" packages="1" files="7" classes="7"/>
     <file name="imageAPI.ts" path="/Users/kassandrabeas/Desktop/CST 438-01/cst438_p3_frontend/src/lib/imageAPI.ts">
       <metrics statements="13" coveredstatements="13" conditionals="8" coveredconditionals="5" methods="1" coveredmethods="1"/>
       <line num="6" count="3" type="stmt"/>
@@ -41,12 +41,12 @@
       <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
     </file>
     <file name="profile.ts" path="/Users/kassandrabeas/Desktop/CST 438-01/cst438_p3_frontend/src/lib/profile.ts">
-      <metrics statements="5" coveredstatements="5" conditionals="8" coveredconditionals="8" methods="3" coveredmethods="3"/>
-      <line num="6" count="1" type="stmt"/>
-      <line num="19" count="3" type="stmt"/>
-      <line num="24" count="3" type="stmt"/>
-      <line num="32" count="2" type="stmt"/>
-      <line num="40" count="1" type="stmt"/>
+      <metrics statements="5" coveredstatements="5" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+      <line num="8" count="18" type="stmt"/>
+      <line num="18" count="3" type="stmt"/>
+      <line num="23" count="3" type="stmt"/>
+      <line num="31" count="2" type="stmt"/>
+      <line num="39" count="1" type="stmt"/>
     </file>
     <file name="strings.ts" path="/Users/kassandrabeas/Desktop/CST 438-01/cst438_p3_frontend/src/lib/strings.ts">
       <metrics statements="5" coveredstatements="5" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
@@ -77,33 +77,56 @@
       <line num="27" count="1" type="stmt"/>
     </file>
     <file name="winners.ts" path="/Users/kassandrabeas/Desktop/CST 438-01/cst438_p3_frontend/src/lib/winners.ts">
-      <metrics statements="26" coveredstatements="26" conditionals="12" coveredconditionals="9" methods="10" coveredmethods="8"/>
+      <metrics statements="49" coveredstatements="40" conditionals="18" coveredconditionals="10" methods="10" coveredmethods="9"/>
+      <line num="14" count="1" type="stmt"/>
       <line num="15" count="1" type="stmt"/>
-      <line num="18" count="4" type="stmt"/>
-      <line num="19" count="4" type="stmt"/>
-      <line num="20" count="4" type="stmt"/>
-      <line num="21" count="4" type="stmt"/>
-      <line num="22" count="4" type="stmt"/>
-      <line num="25" count="2" type="stmt"/>
-      <line num="26" count="2" type="stmt"/>
-      <line num="27" count="2" type="stmt"/>
-      <line num="28" count="2" type="stmt"/>
-      <line num="32" count="2" type="stmt"/>
-      <line num="36" count="3" type="stmt"/>
-      <line num="37" count="3" type="cond" truecount="1" falsecount="1"/>
-      <line num="41" count="1" type="stmt"/>
-      <line num="46" count="1" type="stmt"/>
+      <line num="18" count="2" type="stmt"/>
+      <line num="19" count="2" type="stmt"/>
+      <line num="20" count="2" type="stmt"/>
+      <line num="21" count="2" type="stmt"/>
+      <line num="22" count="2" type="stmt"/>
+      <line num="26" count="1" type="stmt"/>
+      <line num="27" count="1" type="stmt"/>
+      <line num="28" count="1" type="stmt"/>
+      <line num="29" count="1" type="stmt"/>
+      <line num="33" count="1" type="stmt"/>
+      <line num="37" count="3" type="stmt"/>
+      <line num="38" count="3" type="cond" truecount="1" falsecount="1"/>
+      <line num="42" count="1" type="stmt"/>
       <line num="47" count="1" type="stmt"/>
-      <line num="49" count="1" type="stmt"/>
-      <line num="50" count="1" type="cond" truecount="1" falsecount="1"/>
-      <line num="52" count="1" type="stmt"/>
+      <line num="48" count="1" type="stmt"/>
       <line num="53" count="1" type="stmt"/>
-      <line num="54" count="1" type="cond" truecount="2" falsecount="0"/>
-      <line num="56" count="1" type="cond" truecount="1" falsecount="1"/>
-      <line num="58" count="1" type="stmt"/>
-      <line num="60" count="1" type="stmt"/>
-      <line num="70" count="1" type="stmt"/>
-      <line num="74" count="1" type="stmt"/>
+      <line num="54" count="1" type="stmt"/>
+      <line num="56" count="1" type="stmt"/>
+      <line num="58" count="0" type="stmt"/>
+      <line num="59" count="0" type="stmt"/>
+      <line num="68" count="1" type="stmt"/>
+      <line num="69" count="1" type="stmt"/>
+      <line num="72" count="1" type="stmt"/>
+      <line num="75" count="1" type="cond" truecount="1" falsecount="1"/>
+      <line num="76" count="0" type="stmt"/>
+      <line num="80" count="1" type="stmt"/>
+      <line num="81" count="1" type="stmt"/>
+      <line num="82" count="1" type="stmt"/>
+      <line num="85" count="1" type="stmt"/>
+      <line num="86" count="1" type="stmt"/>
+      <line num="87" count="0" type="stmt"/>
+      <line num="88" count="0" type="stmt"/>
+      <line num="92" count="1" type="cond" truecount="1" falsecount="1"/>
+      <line num="93" count="0" type="stmt"/>
+      <line num="94" count="0" type="stmt"/>
+      <line num="98" count="1" type="stmt"/>
+      <line num="101" count="1" type="stmt"/>
+      <line num="102" count="1" type="cond" truecount="1" falsecount="1"/>
+      <line num="103" count="0" type="stmt"/>
+      <line num="104" count="0" type="stmt"/>
+      <line num="108" count="87" type="stmt"/>
+      <line num="110" count="1" type="stmt"/>
+      <line num="121" count="1" type="stmt"/>
+      <line num="122" count="1" type="stmt"/>
+      <line num="123" count="1" type="stmt"/>
+      <line num="127" count="1" type="stmt"/>
+      <line num="128" count="1" type="stmt"/>
     </file>
   </project>
 </coverage>

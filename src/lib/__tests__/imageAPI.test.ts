@@ -4,6 +4,16 @@ import { getRandomImage } from '../imageAPI';
 global.fetch = jest.fn();
 
 describe('imageAPI', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    warnSpy.mockRestore();
+  });
+  
   beforeEach(() => {
     jest.clearAllMocks();
   });
