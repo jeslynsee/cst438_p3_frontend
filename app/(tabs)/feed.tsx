@@ -56,11 +56,20 @@ export default function Feed() {
     }, [session?.team])
   );
   
+  function formatPostedTime(time){
+    if (!time) {
+      return "Just now";
+    }
+    const date = new Date(time);
+    return date.toLocaleDateString();
+  };
+
   // render each item in FlatList
   // anon arrow below for updatePostLikes ensures we don't get inifinite loop (updating on render instead of onPress)
   const renderPost = ({ item }) => (
     <View style={styles.postCard}>
       <Text style={styles.postUsername}>{item.username || "Unknown User"}</Text>
+      <Text style={styles.postTime}>{formatPostedTime(item.postedTime)}</Text>
       <Image 
         source={{ uri: item.imageUrl }}
         style={styles.image}
@@ -166,6 +175,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     alignSelf: "flex-start", // helps align username to left/start
     width: "100%", // helps username take full width to sit nicely on top left corner of postCard
+  },
+  postTime: {
+    alignSelf: "flex-start"
   },
   image: {
     width: 300,

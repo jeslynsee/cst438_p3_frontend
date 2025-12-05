@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { useSession } from "../context/userContext";
 
-import { getLocalProfile, setLocalProfile } from "../../src/lib/profile";
+import { getLocalProfile } from "../../src/lib/profile";
 import { getTeam, setTeam, type Team } from "../../src/lib/team";
 
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
@@ -81,20 +81,33 @@ export default function SettingsScreen() {
   }
 
   async function onSaveChanges() {
-    await setLocalProfile({
-      username: user.username,
-      email: user.email,
-      photoUri: user.photoUri ?? null,
-    });
-    Alert.alert("Saved", "Your profile changes were saved locally.");
+    try {
+      const response = await fetch(`https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/${session.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json", 
+          "Accept": "application/json" 
+        },
+        body: JSON.stringify({ username: user.username || session.username, email: user.email || session.email})
+      });
+
+      const updatedUser = await response.json();
+
+      if (!updatedUser) {
+        Alert.alert("Something went wrong!");
+      } else {
+        if (Platform.OS === "web") {
+          alert("Your profile changes were saved.");
+        }
+        Alert.alert("Your profile changes were saved.");
+      }
+      
+    } catch(error) {
+      console.log("Error saving changes to account info: " + error)
+    }
+   
   }
 
-  async function onResetPassword() {
-    const ok = await confirm("Reset Password", `Send a reset link to ${user.email}?`);
-    if (!ok) return;
-    // TODO: replace with real backend call later.
-    Alert.alert("Email sent", "Check your inbox for the reset link.");
-  }
 
   async function onDeleteAccount() {
     const ok = await confirm(
@@ -179,18 +192,7 @@ export default function SettingsScreen() {
       <View style={s.fieldBlock}>
         <Text style={s.label}>Team</Text>
         <View style={s.segmentWrap}>
-          <Pressable
-            onPress={()=>onPickTeam("Cats")}
-            style={[s.segmentHalf, user.team==="Cats"?s.segmentActive:s.segmentInactive]}
-          >
-            <Text style={[s.segmentTxt, user.team==="Cats"&&s.segmentTxtActive]}>Cats</Text>
-          </Pressable>
-          <Pressable
-            onPress={()=>onPickTeam("Dogs")}
-            style={[s.segmentHalf, user.team==="Dogs"?s.segmentActive:s.segmentInactive]}
-          >
-            <Text style={[s.segmentTxt, user.team==="Dogs"&&s.segmentTxtActive]}>Dogs</Text>
-          </Pressable>
+          <Text> {session.team} </Text>
         </View>
       </View>
 
@@ -208,10 +210,6 @@ export default function SettingsScreen() {
           
         <Pressable onPress={onSaveChanges} style={s.primaryBtn}>
           <Text style={s.primaryTxt}>SAVE CHANGES</Text>
-        </Pressable>
-
-        <Pressable onPress={onResetPassword} style={s.secondaryBtn}>
-          <Text style={s.secondaryTxt}>RESET PASSWORD</Text>
         </Pressable>
 
         <Pressable onPress={onDeleteAccount} style={s.dangerBtn}>
