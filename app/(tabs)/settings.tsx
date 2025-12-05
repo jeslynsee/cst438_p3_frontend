@@ -23,7 +23,6 @@ import { getTeam, setTeam, type Team } from "../../src/lib/team";
 /** Cross-platform confirm (Alert on native, window.confirm on web) */
 async function confirm(title: string, message: string): Promise<boolean> {
   if (Platform.OS === "web") {
-     
     return window.confirm(`${title}\n\n${message}`);
   }
   return new Promise((resolve) => {
@@ -48,40 +47,56 @@ export default function SettingsScreen() {
     admin: session.admin
   });
 
-
   // Load saved profile + team
   useEffect(() => {
     (async () => {
-      const prof = await getLocalProfile();
+      const prof = await getLocalProfile(session.id);
       const t = await getTeam();
+      
+      // Convert team from backend format to UI format
+      const teamUI: "Cats" | "Dogs" = session.team === "cat" ? "Cats" : "Dogs";
+      
       setUser({
-        username: user.username,
-        email: user.email,
+        username: session.username,
+        email: session.email,
         photoUri: prof.photoUri ?? null,
-        team: user.team, // this needs to be fixed to actually show user's team. not properly loading right now due to leftover logic
-        admin: user.admin,
+        team: teamUI,
+        admin: session.admin,
       });
       setHydrated(true);
     })();
-  }, []);
+  }, [session]);
 
   async function onPickTeam(side: "Cats" | "Dogs") {
     if (side === user.team) return;
     setUser(p => ({ ...p, team: side }));
     const t: Team = side === "Cats" ? "cats" : "dogs";
     await setTeam(t);
-    Alert.alert("Team updated", `You’re on the ${side} feed now.`);
+    Alert.alert("Team updated", `You're on the ${side} feed now.`);
   }
 
   async function uploadPhoto() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (perm.status !== "granted") { Alert.alert("Permission", "Please allow photo access."); return; }
+    if (perm.status !== "granted") { 
+      Alert.alert("Permission", "Please allow photo access."); 
+      return; 
+    }
     const res = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true });
-    if (!res.canceled) setUser(p => ({ ...p, photoUri: res.assets[0].uri }));
+    if (!res.canceled) {
+      const photoUri = res.assets[0].uri;
+      setUser(p => ({ ...p, photoUri }));
+      
+      // Immediately save the photo to storage
+      await setLocalProfile(session.id, {
+        username: user.username,
+        email: user.email,
+        photoUri: photoUri,
+      });
+    }
   }
 
   async function onSaveChanges() {
-    await setLocalProfile({
+    await setLocalProfile(session.id, {
       username: user.username,
       email: user.email,
       photoUri: user.photoUri ?? null,
@@ -123,7 +138,6 @@ export default function SettingsScreen() {
     } catch(error) {
       console.log("Error deleting account: " + error);
     }
-
   }
 
   const onSignOut = async () => {
@@ -132,7 +146,7 @@ export default function SettingsScreen() {
 
   if (!hydrated) return null;
 
-    return (
+  return (
     <ScrollView
       style={s.page}
       contentContainerStyle={s.content}
@@ -193,8 +207,6 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       </View>
-
-
 
       {/* Actions */}
       {/* WRAP ACTION BUTTONS IN A VIEW TO FIX SCROLLVIEW CLOSING */}
@@ -265,5 +277,4 @@ const s = StyleSheet.create({
   dangerTxt:{ color:"#fff", fontWeight:"900" },
   signOutButton:{ backgroundColor:colors.dark, borderRadius:12, paddingVertical:12, alignItems:"center", marginTop:10 },
   signOutTxt: { color:"#fff", fontWeight:"900" }
-
 });
