@@ -5,9 +5,10 @@ import {
   Dimensions,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 import { getVoteStatus, recordVote } from "../../src/lib/votes";
 import { closeWeekIfNeeded } from "../../src/lib/winners"; // ADDED
@@ -142,6 +143,7 @@ export default function TopPostsScreen() {
 
   return (
     <View style={s.page}>
+      <ScrollView contentContainerStyle={s.scrollContent}>
       <View style={s.hero}>
         <View style={s.heroBg1} pointerEvents="none" />
         <View style={s.heroBg2} pointerEvents="none" />
@@ -212,6 +214,7 @@ export default function TopPostsScreen() {
           </View>
         )}
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -254,6 +257,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     position: "relative",
     zIndex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30,  
   },
   hero: { paddingTop: 18, paddingBottom: 18, overflow: "hidden", position: "relative" },
   heroBg1: { position: "absolute", top: -60, left: -40, width: 280, height: 280, borderRadius: 140, backgroundColor: "#ffe7cf", opacity: 0.9, zIndex: 0 },
