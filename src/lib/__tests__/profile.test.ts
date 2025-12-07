@@ -1,5 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { clearLocalProfile, getLocalProfile, setLocalProfile } from '../profile';
+import {
+  clearLocalProfile,
+  getLocalProfile,
+  LocalProfile,
+  setLocalProfile,
+} from '../profile';
 
 describe('profile', () => {
   beforeEach(async () => {
@@ -7,38 +12,48 @@ describe('profile', () => {
   });
 
   it('should return default profile when none exists', async () => {
-    const profile = await getLocalProfile();
+    const profile = await getLocalProfile('user-1');
 
-    expect(profile.username).toBe('kassandra');
-    expect(profile.email).toBe('kass@example.com');
+    expect(profile.username).toBe('user');
+    expect(profile.email).toBe('user@example.com'); 
     expect(profile.photoUri).toBeNull();
   });
 
   it('should save and retrieve a profile', async () => {
-    const newProfile = {
-      username: 'testuser',
-      email: 'test@example.com',
-      photoUri: 'https://example.com/photo.jpg',
+    const userId = 'user-1';
+
+    const savedProfile: LocalProfile = {
+      username: 'kassandra',
+      email: 'kass@example.com',
+      photoUri: null,
     };
 
-    await setLocalProfile(newProfile);
-    const retrieved = await getLocalProfile();
+    await setLocalProfile(userId, savedProfile);
 
-    expect(retrieved.username).toBe('testuser');
-    expect(retrieved.email).toBe('test@example.com');
-    expect(retrieved.photoUri).toBe('https://example.com/photo.jpg');
+    const loaded = await getLocalProfile(userId);
+
+    expect(loaded.username).toBe('kassandra');
+    expect(loaded.email).toBe('kass@example.com');
+    expect(loaded.photoUri).toBeNull();
   });
 
   it('should clear profile data', async () => {
-    await setLocalProfile({
-      username: 'testuser',
-      email: 'test@example.com',
-    });
+    const userId = 'user-1';
 
-    await clearLocalProfile();
-    const profile = await getLocalProfile();
+    const savedProfile: LocalProfile = {
+      username: 'kassandra',
+      email: 'kass@example.com',
+      photoUri: null,
+    };
 
-    expect(profile.username).toBe('kassandra');
-    expect(profile.email).toBe('kass@example.com');
+    await setLocalProfile(userId, savedProfile);
+
+    await clearLocalProfile(userId);
+
+    const profile = await getLocalProfile(userId);
+
+    expect(profile.username).toBe('user');
+    expect(profile.email).toBe('user@example.com'); 
+    expect(profile.photoUri).toBeNull();
   });
 });
