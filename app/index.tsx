@@ -20,7 +20,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
-  const { request: githubRequest, response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
+
+  const { response: githubResponse, promptAsync: promptGithub } = useGithubAuth();
   const { request: googleRequest, response: googleResponse, promptAsync: promptGoogle } = useGoogleAuth();
 
   const [isReady, setIsReady] = useState(false);
@@ -59,8 +60,8 @@ export default function Login() {
       const response = await fetch("https://catsvsdogs-e830690a69ba.herokuapp.com/api/users/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // shows we are going to pass a JSON body
-          "Accept": "application/json" // we'll accept a JSON body back
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify({ email, password })
         });
@@ -80,21 +81,7 @@ export default function Login() {
 
     }
     
-
-   
   };
-
-  //OAuth2
-  const handleGoogleSignIn = () => {
-    console.log("Need to get OAuth working");
-    // need to set up route in backend for this
-  }
-
-  //OAuth2
-  const handleGithubSignIn = () => {
-    router.push("http://localhost:8080/login/oauth2/code/github");
-    // need to set up route in backend for this
-  }
 
   // function taking user to sign up form if they don't have account already
   const rerouteToSignUp = () => {
